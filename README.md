@@ -7,6 +7,8 @@ supadupaprompt-codex is an open-source Codex skill pack for turning rough intent
 
 supadupaprompt-codex is intentionally lightweight. It does not try to become a full prompt-optimization platform or an always-on hook. You invoke the skills when you want a better prompt or when you want to tune the rewriter to how someone actually works.
 
+`prompt-rewrite` can reference other installed skills natively. It checks the current Codex skill context first, and can optionally scan local skill folders, so rewritten prompts can say things like `Use $gstack for browser QA` or `Use $github:yeet for publishing` only when those skills are available.
+
 ## Why This Exists
 
 There are already strong prompt-improvement projects:
@@ -83,6 +85,12 @@ Test the profile helper:
 
 ```bash
 python3 skills/prompt-profile-review/scripts/collect_user_prompts.py ~/.codex/memories/MEMORY.md --query "when the user,prompt,subagents" --limit 10
+```
+
+List locally installed skills for routing:
+
+```bash
+python3 skills/prompt-rewrite/scripts/list_installed_skills.py --include-plugin-cache --query "browser,github,design,skill"
 ```
 
 ## License

@@ -25,21 +25,28 @@ Use supadupaprompt-codex to transform a rough ask into a prompt that gives an AI
    - Use `references/prompt-types.md` when the prompt needs type-specific structure.
    - Common types: code change, bug investigation, code review, product/UX audit, browser QA, research, planning, data/document work, automation, image/design generation, handoff, or skill creation.
 
-4. Add missing structure.
+4. Build an available skill map.
+   - Check the current session's available skills list before suggesting skill invocations.
+   - Mention exact `$skill-name` invocations only when that skill is installed or visible in the current context.
+   - Prefer task-relevant skills over generic wording: browser QA, GitHub PRs, design review, docs, sheets, automations, research, or repo-specific workflows.
+   - If the current context does not expose the installed skill list and local filesystem access is appropriate, use `scripts/list_installed_skills.py` to scan likely local skill roots.
+   - Read `references/skill-routing.md` for routing rules and examples.
+
+5. Add missing structure.
    - Goal: the exact outcome.
    - Context: sources, files, product surface, prior decisions, or examples the agent should inspect.
    - Scope: what to touch and what to leave alone.
-   - Method: whether to use tools, subagents, browser checks, citations, tests, or live verification.
+   - Method: whether to use tools, installed skills, subagents, browser checks, citations, tests, or live verification.
    - Constraints: privacy, safety, no destructive actions, no overbuilding, no unrelated refactors.
    - Output contract: findings first, copyable artifact, PR summary, table, checklist, or concise answer.
    - Done criteria: how the agent knows it is finished.
 
-5. Personalize when a profile exists.
+6. Personalize when a profile exists.
    - If a `$prompt-profile-review` output or local prompt profile is available, apply it.
    - Preserve useful directness and autonomy preferences instead of making every prompt formal.
    - Read `references/personalization.md` for profile application rules.
 
-6. Decide whether to ask or assume.
+7. Decide whether to ask or assume.
    - Ask up to 3 concise questions only when missing information could cause destructive work, wrong-tool output, privacy exposure, production impact, or a large wrong turn.
    - Otherwise, write the prompt with explicit assumptions.
 
@@ -82,4 +89,5 @@ The prompt is ready when it:
 - `references/prompt-types.md`: type-specific fields and examples.
 - `references/quality-rubric.md`: final checklist for prompt quality.
 - `references/personalization.md`: how to apply a user prompt profile.
+- `references/skill-routing.md`: how to reference installed skills natively.
 - `references/examples.md`: compact before/after examples for common rewrites.
