@@ -1,0 +1,4 @@
+interface:
+  display_name: "Supadupaprompt Rewrite"
+  short_description: "Rewrite rough asks into stronger prompts"
+  default_prompt: "Use $prompt-rewrite to turn this rough request into a stronger prompt."
