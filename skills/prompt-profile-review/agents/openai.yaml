@@ -1,0 +1,4 @@
+interface:
+  display_name: "Supadupaprompt Profile Review"
+  short_description: "Learn prompt style from chats"
+  default_prompt: "Use $prompt-profile-review to analyze my recent chats and produce a private prompt profile."
