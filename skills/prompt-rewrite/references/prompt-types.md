@@ -8,6 +8,7 @@ Require:
 
 - Repo/path and feature or bug target.
 - Files or modules to inspect first, if known.
+- Installed repo or framework skills to use when visible, such as project-specific skills, frontend best-practice skills, or GitHub publishing skills.
 - Scope boundary: small PR, no unrelated refactors, no dependency changes unless needed.
 - Verification: tests, lint, typecheck, build, browser smoke, or explicit "explain if not run".
 - Git/PR expectations if the user asked to ship.
@@ -57,6 +58,7 @@ Require:
 Require:
 
 - URL or local target.
+- Installed browser/QA skill invocation when visible, such as `$gstack`, `$qa`, `$browse`, `$live-workflow-audit`, or a Codex Browser skill.
 - Viewports, credentials/test login path if relevant.
 - Interactions to perform.
 - Evidence: screenshots, console errors, network failures, overlap/layout issues.
@@ -121,5 +123,6 @@ Require:
 - Trigger scenarios.
 - Concrete examples of user requests.
 - Reusable resources: references, scripts, assets.
+- Related installed skills that should be reused or referenced instead of duplicated.
 - Validation command and forward-test prompt.
 - Open-source packaging expectations if relevant.
