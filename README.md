@@ -87,10 +87,23 @@ Test the profile helper:
 python3 skills/prompt-profile-review/scripts/collect_user_prompts.py ~/.codex/memories/MEMORY.md --query "when the user,prompt,subagents" --limit 10
 ```
 
+Estimate token use by mode:
+
+```bash
+python3 skills/prompt-profile-review/scripts/estimate_review_tokens.py --evidence-file ~/.codex/memories/MEMORY.md
+python3 skills/prompt-rewrite/scripts/estimate_rewrite_tokens.py --fixture skills/prompt-rewrite/fixtures/review_handoff_rewrite.json
+```
+
 List locally installed skills for routing:
 
 ```bash
 python3 skills/prompt-rewrite/scripts/list_installed_skills.py --include-plugin-cache --intent "browser-qa,qa-fix,qa-report,design-review,publish-pr,debug,code-review,deploy-canary" --query "qa,qa-only,design-review,ship,yeet,browser,github,vercel,investigate,review,deploy"
+```
+
+Validate dogfood fixtures:
+
+```bash
+python3 skills/prompt-rewrite/scripts/check_dogfood_fixtures.py
 ```
 
 ## License

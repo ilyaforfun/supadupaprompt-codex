@@ -6,9 +6,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import time
 from pathlib import Path
 
 
+DEFAULT_CACHE_PATH = "~/.cache/supadupaprompt-codex/installed-skills.json"
+CACHE_VERSION = 1
 DEFAULT_ROOTS = (
     "~/.codex/skills",
     "~/.agents/skills",
@@ -151,6 +154,82 @@ def apply_prefix_families(skills: list[dict[str, str]]) -> None:
                 ranked_matches.append((1, -tokens.index(family), len(family), family))
         if ranked_matches:
             skill["family"] = max(ranked_matches)[3]
+
+
+def cache_key(roots: list[Path], include_plugin_cache: bool) -> dict[str, object]:
+    resolved_roots: list[str] = []
+    for root in roots:
+        expanded = root.expanduser()
+        if expanded.exists():
+            resolved_roots.append(str(expanded.resolve()))
+        else:
+            resolved_roots.append(str(expanded))
+    return {
+        "roots": resolved_roots,
+        "include_plugin_cache": include_plugin_cache,
+    }
+
+
+def load_cached_skills(cache_path: Path, key: dict[str, object], ttl_seconds: int) -> list[dict[str, str]] | None:
+    if ttl_seconds <= 0 or not cache_path.exists():
+        return None
+    try:
+        payload = json.loads(cache_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if payload.get("version") != CACHE_VERSION or payload.get("key") != key:
+        return None
+    created_at = float(payload.get("created_at") or 0)
+    if time.time() - created_at > ttl_seconds:
+        return None
+    skills = payload.get("skills")
+    if not isinstance(skills, list):
+        return None
+    return [skill for skill in skills if isinstance(skill, dict)]
+
+
+def save_cached_skills(cache_path: Path, key: dict[str, object], skills: list[dict[str, str]]) -> None:
+    payload = {
+        "version": CACHE_VERSION,
+        "created_at": time.time(),
+        "key": key,
+        "skills": skills,
+    }
+    try:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = cache_path.with_suffix(f"{cache_path.suffix}.tmp")
+        temporary.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
+        temporary.replace(cache_path)
+    except OSError:
+        return
+
+
+def build_skill_snapshot(roots: list[Path], include_plugin_cache: bool) -> list[dict[str, str]]:
+    skills: list[dict[str, str]] = []
+    seen_invocations: set[str] = set()
+    for skill_md in iter_skill_files(roots, include_plugin_cache):
+        metadata = parse_frontmatter(skill_md.read_text(errors="ignore"))
+        name = metadata.get("name") or skill_md.parent.name
+        description = metadata.get("description", "")
+        invocation = skill_invocation(name, skill_md)
+        if invocation in seen_invocations:
+            continue
+        seen_invocations.add(invocation)
+        skills.append(
+            {
+                "name": name,
+                "invocation": invocation,
+                "category": skill_category(name, description, skill_md),
+                "family": base_skill_family(name, description, skill_md),
+                "intent": skill_intent(name, description, skill_md),
+                "description": description,
+                "path": str(skill_md),
+                "score": "0",
+            }
+        )
+
+    apply_prefix_families(skills)
+    return skills
 
 
 def skill_category(name: str, description: str, path: Path) -> str:
@@ -332,6 +411,10 @@ def main() -> int:
     )
     parser.add_argument("--intent", help="Comma-separated intents, for example: qa-fix,qa-report,design-review,publish-pr")
     parser.add_argument("--include-plugin-cache", action="store_true", help="Also scan ~/.codex/plugins/cache")
+    parser.add_argument("--cache-path", default=DEFAULT_CACHE_PATH, help="Installed-skill snapshot cache path")
+    parser.add_argument("--cache-ttl-seconds", type=int, default=300, help="How long to reuse the skill snapshot cache")
+    parser.add_argument("--refresh-cache", action="store_true", help="Ignore any existing skill snapshot cache")
+    parser.add_argument("--no-cache", action="store_true", help="Scan skill roots without reading or writing the cache")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--limit", type=int, default=120)
     args = parser.parse_args()
@@ -342,30 +425,16 @@ def main() -> int:
     intents = [item.strip().lower() for item in (args.intent or "").split(",") if item.strip()]
     roots = [Path(item) for item in args.roots]
 
-    skills: list[dict[str, str]] = []
-    seen_invocations: set[str] = set()
-    for skill_md in iter_skill_files(roots, args.include_plugin_cache):
-        metadata = parse_frontmatter(skill_md.read_text(errors="ignore"))
-        name = metadata.get("name") or skill_md.parent.name
-        description = metadata.get("description", "")
-        invocation = skill_invocation(name, skill_md)
-        if invocation in seen_invocations:
-            continue
-        seen_invocations.add(invocation)
-        skills.append(
-            {
-                "name": name,
-                "invocation": invocation,
-                "category": skill_category(name, description, skill_md),
-                "family": base_skill_family(name, description, skill_md),
-                "intent": skill_intent(name, description, skill_md),
-                "description": description,
-                "path": str(skill_md),
-                "score": "0",
-            }
-        )
+    snapshot_key = cache_key(roots, args.include_plugin_cache)
+    cache_path = Path(args.cache_path).expanduser()
+    skills = None
+    if not args.no_cache and not args.refresh_cache:
+        skills = load_cached_skills(cache_path, snapshot_key, args.cache_ttl_seconds)
+    if skills is None:
+        skills = build_skill_snapshot(roots, args.include_plugin_cache)
+        if not args.no_cache:
+            save_cached_skills(cache_path, snapshot_key, skills)
 
-    apply_prefix_families(skills)
     scored_skills: list[dict[str, str]] = []
     for skill in skills:
         score = score_skill(skill, queries, categories, families, intents)
