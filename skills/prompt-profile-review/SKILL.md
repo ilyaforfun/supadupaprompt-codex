@@ -37,6 +37,7 @@ Use supadupaprompt-codex to turn prior conversations into a compact private prof
    - Include 3-6 before/after examples based on patterns, not long private transcripts.
 
 5. Hand off to prompt rewriting.
+   - When the user wants both review and rewriting, include a compact `Prompt-Rewrite Handoff` block with the 5-8 active rules the rewriter should apply.
    - If the user also wants better prompts, tell them to use `$prompt-rewrite` with this profile.
    - Do not persist the profile to disk unless the user asks for a file or gives an explicit destination.
 
