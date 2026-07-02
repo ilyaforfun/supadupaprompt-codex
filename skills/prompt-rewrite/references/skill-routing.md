@@ -33,17 +33,35 @@ Use installed skills as native capabilities when rewriting prompts. The goal is 
    - Do not add multiple skill invocations when one direct skill covers the task.
    - If a skill would trigger extra work the user did not ask for, make it optional or omit it.
 
+## Skill Families
+
+Some installed skills are packs with many subskills. Do not collapse a family to its root skill when a visible subskill matches better.
+
+For gstack-like families:
+
+- Use `$gstack` or `$browse` for generic browser QA, site dogfooding, screenshots, and live UI checks.
+- Use `$qa` when the user wants systematic QA and fixes in the codebase.
+- Use `$qa-only` when the user wants a report and no code changes.
+- Use `$design-review`, `$critique`, `$polish`, or similar visible design skills for visual UX, spacing, hierarchy, and AI-slop review.
+- Use `$investigate` for debugging and root-cause work.
+- Use `$review` for pre-landing code review.
+- Use `$ship` for the full ship workflow when the user says ship, create PR, push, or publish and the gstack ship skill is visible.
+- Use `$github:yeet` when the task is only to publish already-scoped local changes through GitHub.
+- Use `$canary` or `$land-and-deploy` for post-deploy monitoring or landing/deploying an existing PR.
+
+When multiple subskills could apply, choose the narrowest one that covers the requested outcome. Mention a second skill only for a distinct phase, such as `$qa` for finding/fixing issues and `$ship` for creating the PR after validation.
+
 ## Optional Local Scan
 
 If the current context does not show installed skills and local filesystem access is appropriate, run:
 
 ```bash
-python3 scripts/list_installed_skills.py --include-plugin-cache --category "browser,github,design,skill" --query "gstack,yeet,browser,github,design,skill"
+python3 scripts/list_installed_skills.py --include-plugin-cache --family "gstack,github,browser" --intent "browser-qa,qa-fix,qa-report,design-review,publish-pr,debug,code-review" --query "gstack,qa,design-review,ship,yeet,browser,github"
 ```
 
 Use the output as a candidate map only. The current Codex session may expose plugin skills that are not present in ordinary skill folders, and local folders may contain skills that are not active in this session.
 
-The scanner ranks exact invocation/name matches above broad description matches and infers plugin prefixes from the plugin cache, such as `$github:yeet` or `$browser:browser`, when possible.
+The scanner ranks exact invocation/name matches above broad description matches, infers plugin prefixes from the plugin cache, and labels likely skill families and intents.
 
 ## Example Rewrite
 
@@ -56,9 +74,9 @@ check the live ux and make a small pr
 Improved when `$gstack` and `$github:yeet` are visible:
 
 ```text
-Use $gstack to inspect the live UX flow at [URL] on mobile and desktop. Lead with concrete findings, reproduction steps, screenshots if useful, and severity. Keep fixes to the smallest PR-worthy slice and do not redesign unrelated surfaces.
+Use $qa to inspect the live UX flow at [URL] on mobile and desktop, report concrete findings, and implement only the smallest PR-worthy fixes. If visual hierarchy, spacing, or UI polish is the main concern and `$design-review` is visible, use `$design-review` instead.
 
-If the fixes are implemented and validation passes, use $github:yeet to publish a draft PR with the changed files, verification commands, and remaining risks.
+After validation passes, use $ship if the full gstack ship workflow is visible. Otherwise use $github:yeet to publish a draft PR with the changed files, verification commands, screenshots/evidence, and remaining risks.
 ```
 
 Improved when no matching skills are visible:
