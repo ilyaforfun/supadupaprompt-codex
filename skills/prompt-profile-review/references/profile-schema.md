@@ -48,7 +48,19 @@ Example:
 When the user asks for review/audit, rewrite the prompt so findings come first and verification evidence is required.
 ```
 
-## 6. Example Rewrites
+## 6. Prompt-Rewrite Handoff
+
+When the next step is `$prompt-rewrite`, include a compact handoff block that can be pasted directly into the rewrite request:
+
+```text
+Prompt-Rewrite Handoff:
+- Preserve: [2-4 direct style/intent rules].
+- Add by default: [3-5 scope, verification, output, or skill-routing rules].
+- Ask before: [only high-risk assumptions].
+- Avoid: [2-4 common failure modes].
+```
+
+## 7. Example Rewrites
 
 Provide 3-6 anonymized examples:
 

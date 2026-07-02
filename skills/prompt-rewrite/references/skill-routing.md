@@ -43,6 +43,8 @@ For any skill family:
 - Use the root skill only for generic work covered by the whole family.
 - Mention a second child skill only for a distinct phase, such as QA first and shipping after validation.
 - Preserve namespace prefixes exactly, such as `$github:yeet`, `$vercel:nextjs`, or `$browser:control-in-app-browser`.
+- Default to one primary skill invocation. Add at most one follow-up skill unless the user explicitly asks for a multi-stage workflow.
+- If several child skills are plausible, write a decision rule instead of a menu, such as `Start with $vercel:investigation-mode; switch to $vercel:deployments-cicd only if the evidence is deployment configuration rather than app code`.
 
 Examples:
 

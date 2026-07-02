@@ -5,9 +5,10 @@ Apply a prompt profile only when it is available in the current conversation or 
 ## How To Use A Profile
 
 1. Extract 3-7 active rewrite rules from the profile.
-2. Apply rules that fit the current prompt type.
-3. Keep the final prompt in the user's working style.
-4. Do not mention private profile details unless relevant.
+2. If the profile includes a `Prompt-Rewrite Handoff` block, treat it as the active rule set and avoid re-summarizing the whole profile.
+3. Apply rules that fit the current prompt type.
+4. Keep the final prompt in the user's working style.
+5. Do not mention private profile details unless relevant.
 
 ## Useful Defaults For Direct, Execution-Oriented Users
 
