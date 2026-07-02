@@ -17,6 +17,19 @@ DEFAULT_ROOTS = (
     "skills",
 )
 
+PLUGIN_PREFIXES = {
+    "browser": "browser",
+    "chrome": "chrome",
+    "github": "github",
+    "gmail": "gmail",
+    "google-drive": "google-drive",
+    "linear": "linear",
+    "notion": "notion",
+    "openai-developers": "openai-developers",
+    "build-web-apps": "build-web-apps",
+    "vercel": "vercel",
+}
+
 
 def parse_frontmatter(text: str) -> dict[str, str]:
     match = re.match(r"^---\n(.*?)\n---", text, flags=re.DOTALL)
@@ -65,45 +78,129 @@ def iter_skill_files(roots: list[Path], include_plugin_cache: bool) -> list[Path
     return sorted(files)
 
 
-def matches_query(name: str, description: str, queries: list[str]) -> bool:
+def plugin_prefix_for_path(path: Path) -> str | None:
+    parts = path.expanduser().parts
+    for index, part in enumerate(parts):
+        if part in {"openai-bundled", "openai-curated", "openai-curated-remote"} and index + 1 < len(parts):
+            return PLUGIN_PREFIXES.get(parts[index + 1])
+    return None
+
+
+def skill_invocation(name: str, path: Path) -> str:
+    prefix = plugin_prefix_for_path(path)
+    if prefix:
+        return f"{prefix}:{name}"
+    return name
+
+
+def skill_category(name: str, description: str, path: Path) -> str:
+    invocation = skill_invocation(name, path).lower()
+    skill_name = name.lower()
+    haystack = f"{invocation} {description} {path}".lower()
+    if invocation.startswith("github:") or skill_name in {"github", "yeet"} or skill_name.startswith("gh-"):
+        return "github"
+    if (
+        invocation.startswith(("browser:", "chrome:"))
+        or skill_name in {"gstack", "browse", "browser", "control-in-app-browser", "open-gstack-browser"}
+        or "gstack" in skill_name
+        or "browser" in skill_name
+    ):
+        return "browser"
+    if skill_name in {"skill-creator", "skill-installer"} or skill_name.startswith("skill-"):
+        return "skill"
+    if any(needle in skill_name for needle in ("design", "critique", "polish", "impeccable", "arrange", "typeset")):
+        return "design"
+    categories = (
+        ("github", ("github", "pull request", " pr ", "issue", "branch", "commit", "yeet")),
+        ("design", ("design", "ux", "ui", "visual", "polish", "typography", "layout")),
+        ("docs", ("docs", "document", "docx", "slides", "spreadsheet", "pdf", "notion")),
+        ("skill", ("skill", "skills", "skill-creator", "skill-installer")),
+        ("browser", ("browser", "gstack", "qa", "screenshot", "localhost", "chrome", "workflow")),
+        ("research", ("research", "scrape", "web page", "source", "citation")),
+        ("automation", ("automation", "cron", "reminder", "monitor", "canary")),
+    )
+    for category, needles in categories:
+        if any(needle in haystack for needle in needles):
+            return category
+    return "other"
+
+
+def score_skill(name: str, description: str, path: Path, queries: list[str], categories: list[str]) -> int:
+    invocation = skill_invocation(name, path).lower()
+    skill_name = name.lower()
+    desc = description.lower()
+    path_text = str(path).lower()
+    category = skill_category(name, description, path)
+
+    if categories and category not in categories:
+        return 0
     if not queries:
-        return True
-    haystack = f"{name} {description}".lower()
-    return any(query in haystack for query in queries)
+        return 100
+
+    best_score = 0
+    for query in queries:
+        query = query.lower()
+        if query in {invocation, f"${invocation}", skill_name, f"${skill_name}"}:
+            best_score = max(best_score, 1000)
+        elif invocation.endswith(f":{query}") or skill_name == query:
+            best_score = max(best_score, 850)
+        elif query in invocation.split(":") or query in re.split(r"[-_:/]+", skill_name):
+            best_score = max(best_score, 650)
+        elif query in invocation:
+            best_score = max(best_score, 450)
+        elif query in path_text:
+            best_score = max(best_score, 200)
+        elif query in desc:
+            best_score = max(best_score, 50)
+
+    score = best_score
+    if category in queries:
+        score += 150
+    return score
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--roots", nargs="*", default=DEFAULT_ROOTS, help="Skill roots to scan")
     parser.add_argument("--query", help="Comma-separated filters for name or description")
+    parser.add_argument("--category", help="Comma-separated categories: browser,github,design,docs,skill,research,automation")
     parser.add_argument("--include-plugin-cache", action="store_true", help="Also scan ~/.codex/plugins/cache")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--limit", type=int, default=120)
     args = parser.parse_args()
 
     queries = [item.strip().lower() for item in (args.query or "").split(",") if item.strip()]
+    categories = [item.strip().lower() for item in (args.category or "").split(",") if item.strip()]
     roots = [Path(item) for item in args.roots]
 
     skills: list[dict[str, str]] = []
-    seen_names: set[str] = set()
+    seen_invocations: set[str] = set()
     for skill_md in iter_skill_files(roots, args.include_plugin_cache):
         metadata = parse_frontmatter(skill_md.read_text(errors="ignore"))
         name = metadata.get("name") or skill_md.parent.name
         description = metadata.get("description", "")
-        if name in seen_names:
+        invocation = skill_invocation(name, skill_md)
+        if invocation in seen_invocations:
             continue
-        if not matches_query(name, description, queries):
+        score = score_skill(name, description, skill_md, queries, categories)
+        if score <= 0:
             continue
-        seen_names.add(name)
+        seen_invocations.add(invocation)
         skills.append(
             {
                 "name": name,
+                "invocation": invocation,
+                "category": skill_category(name, description, skill_md),
                 "description": description,
                 "path": str(skill_md),
+                "score": str(score),
             }
         )
-        if len(skills) >= args.limit:
-            break
+
+    skills = sorted(
+        skills,
+        key=lambda skill: (-int(skill["score"]), skill["category"], skill["invocation"], skill["path"]),
+    )[: args.limit]
 
     if args.format == "json":
         print(json.dumps(skills, indent=2, ensure_ascii=False))
@@ -112,7 +209,7 @@ def main() -> int:
             desc = re.sub(r"\s+", " ", skill["description"]).strip()
             if len(desc) > 180:
                 desc = desc[:177].rstrip() + "..."
-            print(f"- ${skill['name']} - {desc} ({skill['path']})")
+            print(f"- ${skill['invocation']} [{skill['category']}] - {desc} ({skill['path']})")
     return 0
 
 
