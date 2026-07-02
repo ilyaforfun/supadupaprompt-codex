@@ -90,7 +90,7 @@ python3 skills/prompt-profile-review/scripts/collect_user_prompts.py ~/.codex/me
 List locally installed skills for routing:
 
 ```bash
-python3 skills/prompt-rewrite/scripts/list_installed_skills.py --include-plugin-cache --query "browser,github,design,skill"
+python3 skills/prompt-rewrite/scripts/list_installed_skills.py --include-plugin-cache --category "browser,github,design,skill" --query "gstack,yeet,browser,github,design,skill"
 ```
 
 ## License
