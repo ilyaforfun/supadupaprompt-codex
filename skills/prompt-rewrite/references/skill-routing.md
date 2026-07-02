@@ -35,7 +35,7 @@ Use installed skills as native capabilities when rewriting prompts. The goal is 
 
 ## Skill Families
 
-Some installed skills are packs with many subskills. Treat a family as any group that shares a plugin namespace, nested pack path, root-child name pattern, or explicit family marker in the skill metadata. Do not collapse a family to its root skill when a visible subskill matches better.
+Some installed skills are packs with many subskills. Treat a family as any group that shares a plugin namespace, nested pack path, related name pattern, or explicit family marker in the skill metadata. Do not collapse a family to its root skill when a visible subskill matches better.
 
 For any skill family:
 
@@ -67,7 +67,7 @@ python3 scripts/list_installed_skills.py --include-plugin-cache --intent "browse
 
 Use the output as a candidate map only. The current Codex session may expose plugin skills that are not present in ordinary skill folders, and local folders may contain skills that are not active in this session.
 
-The scanner ranks exact invocation/name matches above broad description matches, infers plugin prefixes from the plugin cache, and labels likely skill families and intents. Family labels come from plugin namespaces, nested pack paths, root-child name patterns, and trailing metadata markers such as `(gstack)`.
+The scanner ranks exact invocation/name matches above broad description matches, infers plugin prefixes from the plugin cache, and labels likely skill families and intents. Family labels come from plugin namespaces, nested pack paths, related name patterns, and trailing metadata markers such as `(gstack)`.
 
 ## Example Rewrite
 
