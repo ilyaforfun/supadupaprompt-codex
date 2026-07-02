@@ -195,7 +195,20 @@ def skill_intent(name: str, description: str, path: Path) -> str:
     exact_intents = (
         ("qa-report", ("qa-only", "gstack-qa-only")),
         ("qa-fix", ("qa", "gstack-qa")),
-        ("design-review", ("design-review", "gstack-design-review", "critique", "polish")),
+        (
+            "design-review",
+            (
+                "design-review",
+                "gstack-design-review",
+                "critique",
+                "polish",
+                "impeccable",
+                "arrange",
+                "typeset",
+                "normalize",
+                "colorize",
+            ),
+        ),
         ("debug", ("investigate", "gstack-investigate", "gstack-openclaw-investigate")),
         ("code-review", ("review", "gstack-review")),
         ("publish-pr", ("ship", "gstack-ship", "yeet")),
@@ -236,7 +249,7 @@ def skill_intent(name: str, description: str, path: Path) -> str:
     text = f"{invocation} {description}".lower()
     intent_rules = (
         ("qa-report", ("qa-only", "report-only", "structured report", "never fixes", "without any code changes")),
-        ("design-review", ("design-review", "designer", "visual qa", "visual audit", "spacing", "typography")),
+        ("design-review", ("design-review", "designer's eye", "visual qa", "visual audit", "design audit")),
         ("debug", ("investigate", "debug", "root cause", "stack trace", "broken behavior")),
         ("code-review", ("pre-landing", "code review", "check my diff", "review this pr")),
         ("deploy-canary", ("canary", "land-and-deploy", "post-deploy", "production health")),
