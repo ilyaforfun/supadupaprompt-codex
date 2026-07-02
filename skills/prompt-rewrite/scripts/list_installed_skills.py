@@ -30,6 +30,7 @@ PLUGIN_PREFIXES = {
     "vercel": "vercel",
 }
 
+
 def parse_frontmatter(text: str) -> dict[str, str]:
     match = re.match(r"^---\n(.*?)\n---", text, flags=re.DOTALL)
     if not match:
@@ -92,30 +93,62 @@ def skill_invocation(name: str, path: Path) -> str:
     return name
 
 
-def skill_family(name: str, description: str, path: Path) -> str:
+def trailing_family_marker(description: str) -> str | None:
+    match = re.search(r"\(([a-z][a-z0-9-]{1,40})\)\s*$", description.strip().lower())
+    if match:
+        return match.group(1)
+    return None
+
+
+def nested_skill_pack_family(path: Path) -> str | None:
+    parts = [part.lower() for part in path.expanduser().parts]
+    skill_positions = [index for index, part in enumerate(parts) if part == "skills"]
+    for index in skill_positions:
+        if index + 1 >= len(parts):
+            continue
+        candidate = parts[index + 1]
+        if candidate.startswith(".") or candidate == path.parent.name.lower():
+            continue
+        if any(later > index + 1 for later in skill_positions):
+            return candidate
+    return None
+
+
+def base_skill_family(name: str, description: str, path: Path) -> str:
     invocation = skill_invocation(name, path).lower()
     skill_name = name.lower()
-    invocation_tail = invocation.split(":", 1)[-1]
-    slug = path.parent.name.lower()
-    parts = {part.lower() for part in path.expanduser().parts}
-    desc = description.lower()
     if invocation.startswith("github:") or skill_name in {"github", "yeet"} or skill_name.startswith("gh-"):
         return "github"
-    if invocation.startswith(("browser:", "chrome:")):
+    if ":" in invocation:
         return invocation.split(":", 1)[0]
-    if "github" in parts:
-        return "github"
-    if (
-        "gstack" in parts
-        or "(gstack)" in desc
-        or skill_name.startswith("gstack-")
-        or invocation_tail.startswith("gstack-")
-        or slug.startswith("gstack-")
-    ):
-        return "gstack"
-    if "browser" in parts or skill_name in {"browser", "browse", "control-in-app-browser"}:
-        return "browser"
+    family = nested_skill_pack_family(path)
+    if family:
+        return family
+    family = trailing_family_marker(description)
+    if family:
+        return family
     return "standalone"
+
+
+def apply_prefix_families(skills: list[dict[str, str]]) -> None:
+    tails = {skill["invocation"].lower().split(":", 1)[-1] for skill in skills}
+    known_families = {skill["family"] for skill in skills if skill["family"] != "standalone"}
+    known_families.update(
+        tail for tail in tails if any(other != tail and other.startswith(f"{tail}-") for other in tails)
+    )
+
+    for skill in skills:
+        if skill["family"] != "standalone":
+            continue
+        invocation_tail = skill["invocation"].lower().split(":", 1)[-1]
+        name = skill["name"].lower()
+        matches = [
+            family
+            for family in known_families
+            if invocation_tail.startswith(f"{family}-") or name.startswith(f"{family}-")
+        ]
+        if matches:
+            skill["family"] = max(matches, key=len)
 
 
 def skill_category(name: str, description: str, path: Path) -> str:
@@ -201,7 +234,7 @@ def skill_intent(name: str, description: str, path: Path) -> str:
     text = f"{invocation} {description}".lower()
     intent_rules = (
         ("qa-report", ("qa-only", "report-only", "structured report", "never fixes", "without any code changes")),
-        ("design-review", ("design-review", "designer", "visual", "spacing", "typography", "layout", "ux")),
+        ("design-review", ("design-review", "designer", "visual qa", "visual audit", "spacing", "typography")),
         ("debug", ("investigate", "debug", "root cause", "stack trace", "broken behavior")),
         ("code-review", ("pre-landing", "code review", "check my diff", "review this pr")),
         ("deploy-canary", ("canary", "land-and-deploy", "post-deploy", "production health")),
@@ -221,21 +254,19 @@ def skill_intent(name: str, description: str, path: Path) -> str:
 
 
 def score_skill(
-    name: str,
-    description: str,
-    path: Path,
+    skill: dict[str, str],
     queries: list[str],
     categories: list[str],
     families: list[str],
     intents: list[str],
 ) -> int:
-    invocation = skill_invocation(name, path).lower()
-    skill_name = name.lower()
-    desc = description.lower()
-    path_text = str(path).lower()
-    category = skill_category(name, description, path)
-    family = skill_family(name, description, path)
-    intent = skill_intent(name, description, path)
+    invocation = skill["invocation"].lower()
+    skill_name = skill["name"].lower()
+    desc = skill["description"].lower()
+    path_text = skill["path"].lower()
+    category = skill["category"]
+    family = skill["family"]
+    intent = skill["intent"]
 
     if categories and category not in categories:
         return 0
@@ -277,7 +308,13 @@ def main() -> int:
     parser.add_argument("--roots", nargs="*", default=DEFAULT_ROOTS, help="Skill roots to scan")
     parser.add_argument("--query", help="Comma-separated filters for name or description")
     parser.add_argument("--category", help="Comma-separated categories: browser,github,design,docs,skill,research,automation")
-    parser.add_argument("--family", help="Comma-separated skill families, for example: gstack,github,browser")
+    parser.add_argument(
+        "--family",
+        help=(
+            "Comma-separated skill families. Families are inferred from plugin namespaces, "
+            "nested pack paths, root-child name prefixes, and trailing markers."
+        ),
+    )
     parser.add_argument("--intent", help="Comma-separated intents, for example: qa-fix,qa-report,design-review,publish-pr")
     parser.add_argument("--include-plugin-cache", action="store_true", help="Also scan ~/.codex/plugins/cache")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
@@ -299,25 +336,31 @@ def main() -> int:
         invocation = skill_invocation(name, skill_md)
         if invocation in seen_invocations:
             continue
-        score = score_skill(name, description, skill_md, queries, categories, families, intents)
-        if score <= 0:
-            continue
         seen_invocations.add(invocation)
         skills.append(
             {
                 "name": name,
                 "invocation": invocation,
                 "category": skill_category(name, description, skill_md),
-                "family": skill_family(name, description, skill_md),
+                "family": base_skill_family(name, description, skill_md),
                 "intent": skill_intent(name, description, skill_md),
                 "description": description,
                 "path": str(skill_md),
-                "score": str(score),
+                "score": "0",
             }
         )
 
-    skills = sorted(
-        skills,
+    apply_prefix_families(skills)
+    scored_skills: list[dict[str, str]] = []
+    for skill in skills:
+        score = score_skill(skill, queries, categories, families, intents)
+        if score <= 0:
+            continue
+        skill["score"] = str(score)
+        scored_skills.append(skill)
+
+    scored_skills = sorted(
+        scored_skills,
         key=lambda skill: (
             -int(skill["score"]),
             skill["family"],
@@ -329,9 +372,9 @@ def main() -> int:
     )[: args.limit]
 
     if args.format == "json":
-        print(json.dumps(skills, indent=2, ensure_ascii=False))
+        print(json.dumps(scored_skills, indent=2, ensure_ascii=False))
     else:
-        for skill in skills:
+        for skill in scored_skills:
             desc = re.sub(r"\s+", " ", skill["description"]).strip()
             if len(desc) > 180:
                 desc = desc[:177].rstrip() + "..."
