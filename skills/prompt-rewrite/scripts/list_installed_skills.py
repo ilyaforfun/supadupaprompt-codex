@@ -142,13 +142,15 @@ def apply_prefix_families(skills: list[dict[str, str]]) -> None:
             continue
         invocation_tail = skill["invocation"].lower().split(":", 1)[-1]
         name = skill["name"].lower()
-        matches = [
-            family
-            for family in known_families
-            if invocation_tail.startswith(f"{family}-") or name.startswith(f"{family}-")
-        ]
-        if matches:
-            skill["family"] = max(matches, key=len)
+        tokens = re.split(r"[-_:/]+", f"{invocation_tail}-{name}")
+        ranked_matches: list[tuple[int, int, int, str]] = []
+        for family in known_families:
+            if invocation_tail.startswith(f"{family}-") or name.startswith(f"{family}-"):
+                ranked_matches.append((2, 0, len(family), family))
+            elif family in tokens:
+                ranked_matches.append((1, -tokens.index(family), len(family), family))
+        if ranked_matches:
+            skill["family"] = max(ranked_matches)[3]
 
 
 def skill_category(name: str, description: str, path: Path) -> str:
