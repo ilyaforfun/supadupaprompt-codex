@@ -38,10 +38,12 @@ Use installed skills as native capabilities when rewriting prompts. The goal is 
 If the current context does not show installed skills and local filesystem access is appropriate, run:
 
 ```bash
-python3 scripts/list_installed_skills.py --include-plugin-cache --query "browser,github,design,skill"
+python3 scripts/list_installed_skills.py --include-plugin-cache --category "browser,github,design,skill" --query "gstack,yeet,browser,github,design,skill"
 ```
 
 Use the output as a candidate map only. The current Codex session may expose plugin skills that are not present in ordinary skill folders, and local folders may contain skills that are not active in this session.
+
+The scanner ranks exact invocation/name matches above broad description matches and infers plugin prefixes from the plugin cache, such as `$github:yeet` or `$browser:browser`, when possible.
 
 ## Example Rewrite
 
