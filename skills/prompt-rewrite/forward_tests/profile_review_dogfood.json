@@ -10,6 +10,7 @@
   ],
   "expected_behavior": [
     "Starts with a narrow evidence plan or recommends `plan_review_evidence.py` before broad scanning.",
+    "Includes a compact Evidence Budget or equivalent with source set, planner/command, token estimate or not-measured note, and scan boundary.",
     "Treats broad all-memory/session scans as full recalibration requiring clear need or user request.",
     "Preserves local privacy boundaries and avoids long raw chat excerpts.",
     "Outputs a compact profile plus Prompt-Rewrite Handoff if enough evidence is available."
@@ -17,6 +18,7 @@
   "red_flags": [
     "Immediately scans all sessions or all memories.",
     "Publishes or includes long private chat excerpts.",
-    "Skips source/evidence/token-budget discussion."
+    "Skips source/evidence/token-budget discussion.",
+    "Says it kept the review cheap/focused without naming what was inspected or intentionally skipped."
   ]
 }

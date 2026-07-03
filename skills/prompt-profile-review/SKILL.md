@@ -20,6 +20,7 @@ Use supadupaprompt-codex to turn prior conversations into a compact private prof
 
 2. Gather evidence.
    - Start with current conversation and high-signal memory summaries before broad log scans.
+   - Track the source set, whether `scripts/plan_review_evidence.py` or a manual equivalent was used, and any broad-vs-narrow token estimates available.
    - Use `scripts/collect_user_prompts.py` for a first pass over local Markdown or JSONL sources when there are many files.
    - Treat script output as candidate evidence. Manually sample sources around important claims before finalizing.
    - Quote minimally. Prefer paraphrase and short snippets.
@@ -34,6 +35,7 @@ Use supadupaprompt-codex to turn prior conversations into a compact private prof
 
 4. Produce a prompt profile.
    - Use the schema in `references/profile-schema.md`.
+   - Include a compact `Evidence Budget` block before the profile whenever the user asks to keep review cheap/focused, avoid scanning everything, or review broad local sources.
    - Separate observations from recommended rewrite rules.
    - Include a short "preserve" section so future prompt-rewriters do not sand away the user's useful directness.
    - Include 3-6 before/after examples based on patterns, not long private transcripts.
@@ -74,6 +76,16 @@ python3 scripts/estimate_review_tokens.py --evidence-file ~/.codex/memories/MEMO
 ```
 
 Use the estimate and evidence plan to choose narrower sources, lower `--limit`, or summarize evidence before handing it to `$prompt-rewrite`. Treat counts as planning guidance, not billing truth.
+
+When producing the final profile after a focused review, include:
+
+```text
+Evidence Budget:
+- Source set: [current thread, MEMORY.md, selected rollout summaries, supplied export, etc.]
+- Narrowing: [planner command used/recommended, or manual equivalent]
+- Token estimate: [broad estimate vs narrow estimate, or "not measured"]
+- Scan boundary: [what was intentionally skipped and when to broaden]
+```
 
 ## Privacy Rules
 

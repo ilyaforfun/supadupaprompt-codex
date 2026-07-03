@@ -50,7 +50,7 @@
       "category": "design"
     }
   ],
-  "golden_rewrite": "Use $prompt-profile-review to review how the user prompts for PR/dogfood work, but do not broad-scan all chats by default. First run `python3 skills/prompt-profile-review/scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal \"review how I prompt for PR/dogfood work\" --budget 5000` or the equivalent path-specific command. Use the ranked selected snippets as the initial evidence set, report broad versus narrow token estimates, and broaden to rollout summaries or sessions only if the selected evidence is too thin. Produce the standard prompt profile plus a compact Prompt-Rewrite Handoff, with source paths and line numbers but no long raw private excerpts.",
+  "golden_rewrite": "Use $prompt-profile-review to review how the user prompts for PR/dogfood work, but do not broad-scan all chats by default. First run `python3 skills/prompt-profile-review/scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal \"review how I prompt for PR/dogfood work\" --budget 5000` or the equivalent path-specific command. Use the ranked selected snippets as the initial evidence set, report broad versus narrow token estimates, and broaden to rollout summaries or sessions only if the selected evidence is too thin. Start the final answer with an Evidence Budget block naming the source set, planner command, broad-vs-narrow estimate, and scan boundary. Produce the standard prompt profile plus a compact Prompt-Rewrite Handoff, with source paths and line numbers but no long raw private excerpts.",
   "checks": {
     "handoff_must_include": [
       "Profile-review",
@@ -65,6 +65,8 @@
       "budget 5000",
       "ranked selected snippets",
       "broad versus narrow token estimates",
+      "Evidence Budget",
+      "scan boundary",
       "Prompt-Rewrite Handoff"
     ],
     "rewrite_must_not_include": [
