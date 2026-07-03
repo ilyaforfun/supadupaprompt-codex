@@ -100,6 +100,14 @@ python3 scripts/check_dogfood_fixtures.py
 
 Use fixture failures as regression signals, then inspect the fixture before changing expected behavior. The fixture suite covers paired review-to-rewrite, code change, PR review, browser QA, research, design audit, profile-review narrowing, dogfood loops, and rewrite-only/no-execution prompts.
 
+Plan manual forward tests after substantial behavior changes:
+
+```bash
+python3 scripts/plan_forward_tests.py
+```
+
+Use the generated agent prompts in clean subagents. Keep expected behavior and red flags separate from the subagent prompt.
+
 For iterative PR-to-dogfood-to-next-build loops on supadupaprompt itself, read `references/dogfood-loop.md` and start with:
 
 ```bash

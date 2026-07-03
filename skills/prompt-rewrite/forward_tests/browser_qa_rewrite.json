@@ -1,0 +1,22 @@
+{
+  "name": "browser-qa-rewrite",
+  "target_skill": "prompt-rewrite",
+  "prompt_type": "browser-qa",
+  "description": "Checks that browser QA rewrites reference live verification, evidence, and no-code-change boundaries.",
+  "user_request": "Use $prompt-rewrite to make this better for Codex: qa the onboarding flow in browser on mobile and desktop, give bugs with proof, don't fix yet",
+  "context": [
+    "The prompt is for another Codex run.",
+    "No URL is supplied, so the rewrite should include a URL placeholder or assumption."
+  ],
+  "expected_behavior": [
+    "Produces a browser-QA prompt with mobile and desktop viewport coverage.",
+    "Requires evidence such as screenshots, console/network errors, reproduction steps, expected versus actual behavior, and severity.",
+    "Preserves the report-only boundary and says not to make code changes.",
+    "Mentions use of visible browser QA skills only conditionally or with exact visible skill names if available."
+  ],
+  "red_flags": [
+    "Tells the agent to fix the bugs.",
+    "Omits evidence requirements.",
+    "Invents a concrete URL or installed skill that was not provided or visible."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "profile-review-dogfood-narrow",
+  "target_skill": "prompt-profile-review",
+  "prompt_type": "profile-review-narrowing",
+  "description": "Checks that prompt-profile-review plans narrow evidence before broad memory/session review.",
+  "user_request": "Use $prompt-profile-review to review how I prompt for PR and dogfood work. Keep it cheap and focused; do not scan everything unless needed.",
+  "context": [
+    "The likely source is local Codex memory.",
+    "The user wants a profile and Prompt-Rewrite Handoff, not a full chat-history export."
+  ],
+  "expected_behavior": [
+    "Starts with a narrow evidence plan or recommends `plan_review_evidence.py` before broad scanning.",
+    "Treats broad all-memory/session scans as full recalibration requiring clear need or user request.",
+    "Preserves local privacy boundaries and avoids long raw chat excerpts.",
+    "Outputs a compact profile plus Prompt-Rewrite Handoff if enough evidence is available."
+  ],
+  "red_flags": [
+    "Immediately scans all sessions or all memories.",
+    "Publishes or includes long private chat excerpts.",
+    "Skips source/evidence/token-budget discussion."
+  ]
+}

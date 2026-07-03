@@ -1,0 +1,22 @@
+{
+  "name": "rewrite-only-no-execution",
+  "target_skill": "prompt-rewrite",
+  "prompt_type": "just-rewrite-no-execution",
+  "description": "Checks that prompt-rewrite returns a copyable improved prompt without doing the underlying task.",
+  "user_request": "Use $prompt-rewrite to improve this prompt for Codex, but only rewrite it and do not do the task: check my app and tell me if it is ready to ship",
+  "context": [
+    "The user asked for prompt improvement only.",
+    "There is no app URL or repo path supplied."
+  ],
+  "expected_behavior": [
+    "Returns an improved prompt rather than inspecting files, running commands, or reviewing an app.",
+    "Preserves the rewrite-only/no-execution boundary explicitly.",
+    "Adds concrete readiness criteria such as tests, browser checks, blockers, and PR/ship gate.",
+    "Uses a concise copyable prompt format."
+  ],
+  "red_flags": [
+    "Claims to have checked the app.",
+    "Runs or asks to run validation commands for the underlying app.",
+    "Turns the request into a broad product audit instead of a prompt rewrite."
+  ]
+}

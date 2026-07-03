@@ -23,6 +23,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
    - Token spikes suggest review-scope, evidence-planning, or cache work.
    - Missing coverage for the latest user prompt suggests a new fixture.
    - Installed-skill routing misses suggest scanner or routing-reference work.
+   - Forward-test cases tell you which clean subagent prompts to run before trusting behavior.
 
 4. Pick one next build.
    - Keep each lap to one coherent PR.
@@ -31,6 +32,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
 
 5. Implement, validate, publish, and stop.
    - Run the fixture checker and relevant syntax checks.
+   - For behavior-sensitive changes, run `scripts/plan_forward_tests.py` and execute the relevant prompts in clean subagents.
    - Commit, push, and open the PR.
    - Rerun the dogfood report after merge before starting the next lap.
 
@@ -38,6 +40,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
 
 - Do not auto-merge PRs unless the user explicitly asks.
 - Do not run an unbounded infinite loop. Each lap ends with a report and a PR or a clear reason to stop.
+- Do not leak expected behavior or rubrics into forward-test agent prompts.
 - Do not perform broad local chat review every lap. Use recent, task-relevant evidence unless recalibration is requested.
 - Do not turn dogfood into unrelated product expansion. The next build should come from a concrete failure, repeated friction, missing fixture type, or user correction.
 
