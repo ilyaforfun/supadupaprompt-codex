@@ -87,6 +87,12 @@ Test the profile helper:
 python3 skills/prompt-profile-review/scripts/collect_user_prompts.py ~/.codex/memories/MEMORY.md --query "when the user,prompt,subagents" --limit 10
 ```
 
+Plan narrow profile-review evidence:
+
+```bash
+python3 skills/prompt-profile-review/scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal "review how I prompt for PR/dogfood work" --budget 5000
+```
+
 Estimate token use by mode:
 
 ```bash
@@ -112,7 +118,7 @@ Generate a dogfood loop report after a PR:
 python3 skills/prompt-rewrite/scripts/dogfood_report.py --pr 9 --evidence-file ~/.codex/memories/MEMORY.md --scan-skills
 ```
 
-Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, dogfood loops, and rewrite-only/no-execution prompts.
+Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, profile-review narrowing, dogfood loops, and rewrite-only/no-execution prompts.
 
 ## License
 

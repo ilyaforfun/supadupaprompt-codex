@@ -18,6 +18,14 @@ Use the smallest source set that can answer the question.
 
 ## Helper Usage
 
+Plan evidence before broad review:
+
+```bash
+python3 scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal "review how I prompt for PR/dogfood work" --budget 5000
+```
+
+The planner ranks snippets, estimates review tokens, and prints the exact review prompt to run. Use this before broad-scanning memories or sessions unless the user explicitly asks for a full recalibration.
+
 Collect candidate evidence from Markdown:
 
 ```bash
