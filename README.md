@@ -106,7 +106,13 @@ Validate dogfood fixtures:
 python3 skills/prompt-rewrite/scripts/check_dogfood_fixtures.py
 ```
 
-Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, and rewrite-only/no-execution prompts.
+Generate a dogfood loop report after a PR:
+
+```bash
+python3 skills/prompt-rewrite/scripts/dogfood_report.py --pr 9 --evidence-file ~/.codex/memories/MEMORY.md --scan-skills
+```
+
+Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, dogfood loops, and rewrite-only/no-execution prompts.
 
 ## License
 
