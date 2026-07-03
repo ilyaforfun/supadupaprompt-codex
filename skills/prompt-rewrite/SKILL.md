@@ -119,6 +119,12 @@ For iterative PR-to-dogfood-to-next-build loops on supadupaprompt itself, read `
 python3 scripts/dogfood_report.py --pr <number> --evidence-file ~/.codex/memories/MEMORY.md --scan-skills
 ```
 
+For install or local health checks, run:
+
+```bash
+python3 scripts/supaprompt_doctor.py
+```
+
 ## References
 
 - `references/prompt-types.md`: type-specific fields and examples.

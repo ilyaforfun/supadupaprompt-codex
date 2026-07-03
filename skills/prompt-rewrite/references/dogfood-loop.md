@@ -33,6 +33,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
 
 5. Implement, validate, publish, and stop.
    - Run the fixture checker and relevant syntax checks.
+   - Run `scripts/supaprompt_doctor.py` after install, script, or workflow changes.
    - For behavior-sensitive changes, run `scripts/plan_forward_tests.py`, execute the relevant prompts in clean subagents, and score the saved outputs with `scripts/score_forward_tests.py`.
    - Commit, push, and open the PR.
    - Rerun the dogfood report after merge before starting the next lap.
