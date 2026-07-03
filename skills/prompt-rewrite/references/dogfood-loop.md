@@ -24,6 +24,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
    - Missing coverage for the latest user prompt suggests a new fixture.
    - Installed-skill routing misses suggest scanner or routing-reference work.
    - Forward-test cases tell you which clean subagent prompts to run before trusting behavior.
+   - Forward-test scores tell you whether behavior has actually passed, not just whether prompts exist.
 
 4. Pick one next build.
    - Keep each lap to one coherent PR.
@@ -32,9 +33,31 @@ Use a narrower evidence file when possible. Broad profile review over all memori
 
 5. Implement, validate, publish, and stop.
    - Run the fixture checker and relevant syntax checks.
-   - For behavior-sensitive changes, run `scripts/plan_forward_tests.py` and execute the relevant prompts in clean subagents.
+   - For behavior-sensitive changes, run `scripts/plan_forward_tests.py`, execute the relevant prompts in clean subagents, and score the saved outputs with `scripts/score_forward_tests.py`.
    - Commit, push, and open the PR.
    - Rerun the dogfood report after merge before starting the next lap.
+
+## Forward-Test Results
+
+Create a private results file before running the clean agents:
+
+```bash
+python3 skills/prompt-rewrite/scripts/score_forward_tests.py --init-results /tmp/supaprompt-forward-results.json --limit 3
+```
+
+Run each generated `agent_prompt` in a clean thread or subagent, paste only the final answer into `agent_output`, and fill in the manual rubric scores. Then score the file:
+
+```bash
+python3 skills/prompt-rewrite/scripts/score_forward_tests.py --results /tmp/supaprompt-forward-results.json --limit 3
+```
+
+Include the scores in the dogfood report:
+
+```bash
+python3 skills/prompt-rewrite/scripts/dogfood_report.py --forward-test-results /tmp/supaprompt-forward-results.json
+```
+
+Do not commit private result files. Synthetic examples are fine if they do not expose local chat history or user data.
 
 ## Boundaries
 

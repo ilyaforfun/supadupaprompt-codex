@@ -118,10 +118,24 @@ Plan manual forward tests:
 python3 skills/prompt-rewrite/scripts/plan_forward_tests.py
 ```
 
+Create and score a private forward-test results file:
+
+```bash
+python3 skills/prompt-rewrite/scripts/score_forward_tests.py --init-results /tmp/supaprompt-forward-results.json
+# Run each agent_prompt in a clean thread, then fill agent_output and rubric scores.
+python3 skills/prompt-rewrite/scripts/score_forward_tests.py --results /tmp/supaprompt-forward-results.json
+```
+
 Generate a dogfood loop report after a PR:
 
 ```bash
 python3 skills/prompt-rewrite/scripts/dogfood_report.py --pr 9 --evidence-file ~/.codex/memories/MEMORY.md --scan-skills
+```
+
+Include scored forward-test results in the report:
+
+```bash
+python3 skills/prompt-rewrite/scripts/dogfood_report.py --forward-test-results /tmp/supaprompt-forward-results.json
 ```
 
 Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, profile-review narrowing, dogfood loops, and rewrite-only/no-execution prompts.
