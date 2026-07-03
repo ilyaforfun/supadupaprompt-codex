@@ -1,5 +1,6 @@
 {
   "name": "direct-codex-skill-work",
+  "prompt_type": "paired-review-rewrite-dogfood",
   "description": "Synthetic dogfood fixture for profile review -> handoff -> rewrite behavior.",
   "source_prompts": [
     "do both skills. review and rewrite now and see how it behaves, be critical on what we might need to change, add",
@@ -84,6 +85,9 @@
       "intent",
       "github:yeet",
       "gstack"
+    ],
+    "prompt_type_must_include": [
+      "paired"
     ]
   }
 }

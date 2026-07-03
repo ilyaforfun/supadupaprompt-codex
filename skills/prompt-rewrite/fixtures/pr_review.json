@@ -1,0 +1,77 @@
+{
+  "name": "pr-review-findings-first",
+  "prompt_type": "pr-review",
+  "description": "Synthetic fixture for rewriting a PR review request into a findings-first review prompt.",
+  "source_prompts": [
+    "review this pr, be critical",
+    "find bugs and missing tests, not a summary"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants a code-review stance that prioritizes concrete bugs, regressions, and missing tests.",
+    "preferred_autonomy": "Inspect the diff and base branch directly; do not ask for a plan first.",
+    "evidence_standard": "Findings need file/line references or exact diff evidence.",
+    "scope_preference": "Review only the PR unless a base-branch issue directly affects it.",
+    "communication_style": "Findings first, ordered by severity."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Critical review intent.",
+      "Bug and test focus.",
+      "Findings-first output."
+    ],
+    "add_by_default": [
+      "Compare against the target base branch.",
+      "Reference files and lines.",
+      "Separate blockers from nits and questions."
+    ],
+    "ask_before": [
+      "Pushing fixes to the branch."
+    ],
+    "avoid": [
+      "Long summaries before findings.",
+      "Style-only feedback unless it hides a bug."
+    ]
+  },
+  "rough_prompt": "review this pr and tell me what is wrong",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "review",
+      "family": "gstack",
+      "intent": "code-review",
+      "category": "github"
+    },
+    {
+      "invocation": "github:github",
+      "family": "github",
+      "intent": "general",
+      "category": "github"
+    }
+  ],
+  "golden_rewrite": "Review the current PR against its base branch. Use the visible code-review or GitHub skill, such as $review or $github:github if available, to inspect the diff and relevant files. Lead with actionable findings ordered by severity, each with file/line evidence and why it matters. Focus on bugs, regressions, unsafe behavior, and missing tests. Put open questions after findings and keep any summary brief.",
+  "checks": {
+    "handoff_must_include": [
+      "Critical",
+      "Findings",
+      "base branch"
+    ],
+    "rewrite_must_include": [
+      "current PR",
+      "base branch",
+      "findings",
+      "severity",
+      "file/line",
+      "missing tests"
+    ],
+    "rewrite_must_not_include": [
+      "implement the fixes",
+      "start with a summary"
+    ],
+    "skill_snapshot_must_include": [
+      "code-review",
+      "github"
+    ],
+    "prompt_type_must_include": [
+      "pr"
+    ]
+  }
+}

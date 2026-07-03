@@ -1,0 +1,77 @@
+{
+  "name": "browser-qa-live-flow",
+  "prompt_type": "browser-qa",
+  "description": "Synthetic fixture for browser QA prompts that need live interaction and evidence.",
+  "source_prompts": [
+    "test the live onboarding flow on mobile and desktop",
+    "give me concrete bugs with screenshots"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants real browser verification, not static guesses.",
+    "preferred_autonomy": "Open the app, interact with the flow, and report evidence without waiting for a plan.",
+    "evidence_standard": "Use URLs, viewport sizes, reproduction steps, screenshots or observable state.",
+    "scope_preference": "QA the named flow; do not redesign unrelated pages.",
+    "communication_style": "Concrete issues first with repro details."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Live QA intent.",
+      "Mobile and desktop coverage.",
+      "Evidence requirement."
+    ],
+    "add_by_default": [
+      "Name target URL or ask if absent.",
+      "Test at representative desktop and mobile widths.",
+      "Report reproduction steps and severity."
+    ],
+    "ask_before": [
+      "Making code changes if the user asked for report-only QA."
+    ],
+    "avoid": [
+      "Static-only analysis.",
+      "Feature ideation before current bugs."
+    ]
+  },
+  "rough_prompt": "qa the onboarding flow in browser",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "qa-only",
+      "family": "gstack",
+      "intent": "qa-report",
+      "category": "browser"
+    },
+    {
+      "invocation": "browser:control-in-app-browser",
+      "family": "browser",
+      "intent": "browser-qa",
+      "category": "browser"
+    }
+  ],
+  "golden_rewrite": "Use the available browser QA skill, such as $qa-only or $browser:control-in-app-browser if visible, to test the onboarding flow at [URL]. Cover one mobile viewport and one desktop viewport. Interact through the full flow, capture observable evidence, and report issues first with severity, reproduction steps, expected versus actual behavior, and screenshots if useful. Do not make code changes unless explicitly asked.",
+  "checks": {
+    "handoff_must_include": [
+      "Live QA",
+      "Mobile",
+      "Evidence"
+    ],
+    "rewrite_must_include": [
+      "browser QA",
+      "onboarding",
+      "mobile",
+      "desktop",
+      "reproduction steps",
+      "Do not make code changes"
+    ],
+    "rewrite_must_not_include": [
+      "redesign",
+      "ship"
+    ],
+    "skill_snapshot_must_include": [
+      "browser-qa",
+      "qa-report"
+    ],
+    "prompt_type_must_include": [
+      "browser"
+    ]
+  }
+}

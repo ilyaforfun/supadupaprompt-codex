@@ -106,6 +106,8 @@ Validate dogfood fixtures:
 python3 skills/prompt-rewrite/scripts/check_dogfood_fixtures.py
 ```
 
+Fixtures cover paired review-to-rewrite, code change, PR review, browser QA, research, design audit, and rewrite-only/no-execution prompts.
+
 ## License
 
 MIT

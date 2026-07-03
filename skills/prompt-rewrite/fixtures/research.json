@@ -1,0 +1,70 @@
+{
+  "name": "research-cited-current",
+  "prompt_type": "research",
+  "description": "Synthetic fixture for current research prompts that need citations and uncertainty boundaries.",
+  "source_prompts": [
+    "research if something like this exists",
+    "be critical, compare and cite sources"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants current, sourced research with a practical differentiation take.",
+    "preferred_autonomy": "Search primary/current sources directly when facts may have changed.",
+    "evidence_standard": "Use links, dates, and explicit confirmed versus inferred distinctions.",
+    "scope_preference": "Compare relevant alternatives without drifting into a market map.",
+    "communication_style": "Concise synthesis with concrete citations."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Critical comparison request.",
+      "Current-state research need.",
+      "Differentiation focus."
+    ],
+    "add_by_default": [
+      "Search current sources.",
+      "Cite sources with dates or access context.",
+      "Separate direct evidence from inference."
+    ],
+    "ask_before": [
+      "Paywalled or private-source access."
+    ],
+    "avoid": [
+      "Unsourced claims.",
+      "Treating old results as current."
+    ]
+  },
+  "rough_prompt": "research if supaprompt is a copy of something and how it is different",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "scrape",
+      "family": "gstack",
+      "intent": "research",
+      "category": "browser"
+    }
+  ],
+  "golden_rewrite": "Research whether a Codex-native prompt rewriting skill like supaprompt already exists. Search current web and GitHub sources, prioritize primary repositories/docs, and cite each source with links. Compare overlap and differentiation: local Codex skill packaging, installed-skill awareness, private profile review without publishing raw chats, and review-to-rewrite handoff. Separate confirmed facts from inference, then recommend concrete improvements.",
+  "checks": {
+    "handoff_must_include": [
+      "Current",
+      "Cite",
+      "inference"
+    ],
+    "rewrite_must_include": [
+      "Research",
+      "current",
+      "GitHub",
+      "cite",
+      "differentiation",
+      "raw chats"
+    ],
+    "rewrite_must_not_include": [
+      "no need to search",
+      "assume"
+    ],
+    "skill_snapshot_must_include": [
+      "research"
+    ],
+    "prompt_type_must_include": [
+      "research"
+    ]
+  }
+}

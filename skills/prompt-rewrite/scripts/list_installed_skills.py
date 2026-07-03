@@ -20,7 +20,7 @@ DEFAULT_ROOTS = (
     "skills",
 )
 
-PLUGIN_PREFIXES = {
+PLUGIN_PREFIX_NORMALIZATIONS = {
     "browser": "browser",
     "chrome": "chrome",
     "github": "github",
@@ -32,6 +32,7 @@ PLUGIN_PREFIXES = {
     "build-web-apps": "build-web-apps",
     "vercel": "vercel",
 }
+PLUGIN_DISTRIBUTIONS = {"openai-bundled", "openai-curated", "openai-curated-remote"}
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
@@ -81,11 +82,18 @@ def iter_skill_files(roots: list[Path], include_plugin_cache: bool) -> list[Path
     return sorted(files)
 
 
+def normalize_plugin_prefix(raw_prefix: str) -> str | None:
+    raw_prefix = raw_prefix.strip().lower().replace("_", "-")
+    if not re.match(r"^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$", raw_prefix):
+        return None
+    return PLUGIN_PREFIX_NORMALIZATIONS.get(raw_prefix, raw_prefix)
+
+
 def plugin_prefix_for_path(path: Path) -> str | None:
     parts = path.expanduser().parts
     for index, part in enumerate(parts):
-        if part in {"openai-bundled", "openai-curated", "openai-curated-remote"} and index + 1 < len(parts):
-            return PLUGIN_PREFIXES.get(parts[index + 1])
+        if part in PLUGIN_DISTRIBUTIONS and index + 1 < len(parts):
+            return normalize_plugin_prefix(parts[index + 1])
     return None
 
 

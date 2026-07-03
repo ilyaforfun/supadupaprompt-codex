@@ -1,0 +1,60 @@
+{
+  "name": "just-rewrite-no-execution",
+  "prompt_type": "just-rewrite-no-execution",
+  "description": "Synthetic fixture for prompts where the user wants only a better prompt, not task execution.",
+  "source_prompts": [
+    "rewrite this prompt only",
+    "do not do the task"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants a copyable improved prompt and no execution.",
+    "preferred_autonomy": "Do not inspect repo files or run tools unless needed to understand the prompt text supplied.",
+    "evidence_standard": "Explain assumptions briefly; no validation of the underlying task is required.",
+    "scope_preference": "Only rewrite the prompt.",
+    "communication_style": "Copyable prompt first, minimal explanation."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Rewrite-only boundary.",
+      "Original target and tone.",
+      "No task execution."
+    ],
+    "add_by_default": [
+      "Clarify executor, scope, constraints, output contract, and done criteria inside the prompt.",
+      "State assumptions rather than asking unnecessary questions."
+    ],
+    "ask_before": [
+      "Changing the target tool when it materially affects the prompt."
+    ],
+    "avoid": [
+      "Running the task.",
+      "Creating files or PRs.",
+      "Adding unrelated features."
+    ]
+  },
+  "rough_prompt": "make this prompt better for codex: check my app",
+  "installed_skill_snapshot": [],
+  "golden_rewrite": "Rewrite only; do not execute the underlying task. Improved prompt: Check the current app from the relevant repo or URL, identify what needs verification first, and report concrete issues with evidence. Do not make code changes unless explicitly asked. Include assumptions, validation steps, and a concise findings-first output format.",
+  "checks": {
+    "handoff_must_include": [
+      "Rewrite-only",
+      "No task execution",
+      "avoid"
+    ],
+    "rewrite_must_include": [
+      "Rewrite only",
+      "do not execute",
+      "Improved prompt",
+      "assumptions",
+      "validation"
+    ],
+    "rewrite_must_not_include": [
+      "I checked",
+      "I changed",
+      "created a PR"
+    ],
+    "prompt_type_must_include": [
+      "no-execution"
+    ]
+  }
+}
