@@ -57,6 +57,16 @@ python3 scripts/collect_user_prompts.py ~/.codex/sessions ~/.codex/memories/roll
 
 The helper prints candidate user-prompt evidence with source paths and line numbers. Use it to find patterns quickly, then inspect the strongest sources directly.
 
+## Token Accounting
+
+Estimate review-mode token use before scanning broad sources:
+
+```bash
+python3 scripts/estimate_review_tokens.py --evidence-file ~/.codex/memories/MEMORY.md
+```
+
+Use the estimate to choose narrower sources, lower `--limit`, or summarize evidence before handing it to `$prompt-rewrite`. Treat the count as planning guidance, not billing truth.
+
 ## Privacy Rules
 
 - Keep raw chat evidence local by default.

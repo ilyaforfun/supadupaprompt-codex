@@ -69,6 +69,8 @@ python3 scripts/list_installed_skills.py --include-plugin-cache --intent "browse
 
 Use the output as a candidate map only. The current Codex session may expose plugin skills that are not present in ordinary skill folders, and local folders may contain skills that are not active in this session.
 
+The scanner caches the discovered skill snapshot for a short time at `~/.cache/supadupaprompt-codex/installed-skills.json` so repeated rewrites can filter and rank without rescanning every folder. Use `--refresh-cache` after installing, removing, or editing skills; use `--no-cache` when debugging scanner behavior.
+
 The scanner ranks exact invocation/name matches above broad description matches, infers plugin prefixes from the plugin cache, and labels likely skill families and intents. Family labels come from plugin namespaces, nested pack paths, related name patterns, and trailing metadata markers such as `(gstack)`.
 
 ## Example Rewrite

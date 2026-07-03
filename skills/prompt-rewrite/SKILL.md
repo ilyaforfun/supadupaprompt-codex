@@ -84,6 +84,22 @@ The prompt is ready when it:
 - Protects against the most likely failure mode for that prompt type.
 - Stays no longer than needed.
 
+## Token Accounting And Dogfood Fixtures
+
+Estimate rewrite-mode token use when the prompt includes a profile, handoff, or installed-skill map:
+
+```bash
+python3 scripts/estimate_rewrite_tokens.py --prompt-text "check this app" --profile-file profile.md
+```
+
+Validate bundled dogfood fixtures after changing review, handoff, personalization, or skill routing behavior:
+
+```bash
+python3 scripts/check_dogfood_fixtures.py
+```
+
+Use fixture failures as regression signals, then inspect the fixture before changing expected behavior.
+
 ## References
 
 - `references/prompt-types.md`: type-specific fields and examples.

@@ -1,0 +1,89 @@
+{
+  "name": "direct-codex-skill-work",
+  "description": "Synthetic dogfood fixture for profile review -> handoff -> rewrite behavior.",
+  "source_prompts": [
+    "do both skills. review and rewrite now and see how it behaves, be critical on what we might need to change, add",
+    "i want this skill prompt to know what other skills are installed, so it can reference them natively",
+    "it should be the same not only for gstack but for any skills with a family right",
+    "let's commit the first version and then we continue the work"
+  ],
+  "golden_profile": {
+    "default_intent": "The user usually wants Codex to inspect current state, execute the change, validate it, and publish the branch or PR when requested.",
+    "preferred_autonomy": "Proceed directly when the scope is clear; ask only before destructive, external, or privacy-sensitive actions.",
+    "evidence_standard": "Use repo state, command output, live product checks, or source files as proof; do not rely on stale memory when current state is cheap to inspect.",
+    "scope_preference": "Keep the first implementation focused, but preserve explicit follow-up goals instead of redefining success around the easiest subset.",
+    "communication_style": "Concise, direct, concrete, with findings and remaining gaps named plainly."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Direct shorthand and execution bias.",
+      "Explicit requests to use both review and rewrite skills.",
+      "Requests for installed-skill awareness, skill families, commits, and PRs."
+    ],
+    "add_by_default": [
+      "Current worktree or source-of-truth inspection before edits.",
+      "Privacy boundary for raw chat/profile evidence.",
+      "Verification commands and expected evidence.",
+      "A scoped output contract: findings, changes, validation, remaining gaps."
+    ],
+    "ask_before": [
+      "Publishing raw chat evidence.",
+      "Destructive changes or live production actions."
+    ],
+    "avoid": [
+      "Generic prompt advice.",
+      "Listing every installed skill when one narrow skill or decision rule is enough.",
+      "Sanding away the user's direct style."
+    ]
+  },
+  "rough_prompt": "review both supaprompt skills, test how they behave together, fix what is needed, and update the PR",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "qa",
+      "family": "gstack",
+      "intent": "qa-fix",
+      "category": "browser"
+    },
+    {
+      "invocation": "qa-only",
+      "family": "gstack",
+      "intent": "qa-report",
+      "category": "browser"
+    },
+    {
+      "invocation": "github:yeet",
+      "family": "github",
+      "intent": "publish-pr",
+      "category": "github"
+    }
+  ],
+  "golden_rewrite": "Work in the current supadupaprompt-codex checkout. Use $prompt-profile-review on the current thread and narrow local memory evidence to produce a compact Prompt-Rewrite Handoff; do not publish raw chat history. Then use $prompt-rewrite with that handoff to rewrite this request into an execution prompt for Codex. Critically evaluate whether the paired flow preserves direct intent, adds scope and verification, uses installed skill families without noisy menus, and keeps privacy boundaries explicit. If you find small skill improvements, implement them, validate the affected scripts and skill metadata, then update the open PR. Report findings first, followed by changes made, validation, and remaining gaps.",
+  "checks": {
+    "handoff_must_include": [
+      "Preserve",
+      "Add by default",
+      "Ask before",
+      "Avoid",
+      "privacy"
+    ],
+    "rewrite_must_include": [
+      "current",
+      "Prompt-Rewrite Handoff",
+      "do not publish raw chat history",
+      "installed skill families",
+      "validate",
+      "PR",
+      "remaining gaps"
+    ],
+    "rewrite_must_not_include": [
+      "list every installed skill",
+      "publish raw chat evidence"
+    ],
+    "skill_snapshot_must_include": [
+      "family",
+      "intent",
+      "github:yeet",
+      "gstack"
+    ]
+  }
+}
