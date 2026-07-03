@@ -2,7 +2,18 @@
 
 Use this schema for the final output. Keep it compact enough to paste into `$prompt-rewrite`.
 
-## 1. Prompting Profile
+## 1. Evidence Budget
+
+Include this first when the review is intentionally cheap/focused, source scope is broad, or the user says not to scan everything:
+
+- **Source set:** Sources actually used or selected.
+- **Narrowing:** Planner command used/recommended, or manual equivalent.
+- **Token estimate:** Broad-vs-narrow estimate when available; otherwise say "not measured".
+- **Scan boundary:** What was intentionally skipped and when to broaden.
+
+Keep this to 3-5 bullets. Counts are planning guidance, not billing truth.
+
+## 2. Prompting Profile
 
 - **Default intent:** What the user usually wants the agent to do.
 - **Preferred autonomy:** When to execute directly, when to plan, when to ask.
@@ -10,7 +21,7 @@ Use this schema for the final output. Keep it compact enough to paste into `$pro
 - **Scope preference:** How tightly or broadly to interpret requests.
 - **Communication style:** Directness, density, tone, update cadence, and final-answer shape.
 
-## 2. Preserve
+## 3. Preserve
 
 List behaviors the prompt-rewriter should keep, even if the user's draft is rough:
 
@@ -19,7 +30,7 @@ List behaviors the prompt-rewriter should keep, even if the user's draft is roug
 - Explicit requests for subagents, browser checks, current-state verification, PRs, or shipping.
 - Informal wording when it carries intent.
 
-## 3. Strengthen
+## 4. Strengthen
 
 List missing details that should usually be added:
 
@@ -29,7 +40,7 @@ List missing details that should usually be added:
 - Stop condition: when the agent should ask before continuing.
 - Output contract: findings-first review, copyable prompt, commit/PR summary, or concise recommendation.
 
-## 4. Ask Before Assuming
+## 5. Ask Before Assuming
 
 Name only the decisions that are risky to infer:
 
@@ -38,7 +49,7 @@ Name only the decisions that are risky to infer:
 - Live production actions.
 - Ambiguous target tool when prompt style depends on the tool.
 
-## 5. Rewrite Defaults
+## 6. Rewrite Defaults
 
 Write 5-10 rules future prompt-rewriters should apply automatically.
 
@@ -48,7 +59,7 @@ Example:
 When the user asks for review/audit, rewrite the prompt so findings come first and verification evidence is required.
 ```
 
-## 6. Prompt-Rewrite Handoff
+## 7. Prompt-Rewrite Handoff
 
 When the next step is `$prompt-rewrite`, include a compact handoff block that can be pasted directly into the rewrite request:
 
@@ -60,7 +71,7 @@ Prompt-Rewrite Handoff:
 - Avoid: [2-4 common failure modes].
 ```
 
-## 7. Example Rewrites
+## 8. Example Rewrites
 
 Provide 3-6 anonymized examples:
 

@@ -26,6 +26,8 @@ python3 scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal "revi
 
 The planner ranks snippets, estimates review tokens, and prints the exact review prompt to run. Use this before broad-scanning memories or sessions unless the user explicitly asks for a full recalibration.
 
+When the user asks to keep the review cheap/focused or not scan everything, reflect the plan in the final answer with a short `Evidence Budget` block: source set, planner command used or recommended, broad-vs-narrow estimate if available, and what was skipped.
+
 Collect candidate evidence from Markdown:
 
 ```bash
