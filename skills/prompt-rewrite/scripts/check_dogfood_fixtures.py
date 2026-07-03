@@ -11,6 +11,7 @@ from typing import Any
 
 REQUIRED_TOP_LEVEL = {
     "name",
+    "prompt_type",
     "source_prompts",
     "golden_profile",
     "golden_handoff",
@@ -46,6 +47,7 @@ def validate_fixture(path: Path) -> list[str]:
         return failures
 
     require(isinstance(data["source_prompts"], list) and data["source_prompts"], f"{path}: source_prompts must be a non-empty list", failures)
+    require(isinstance(data["prompt_type"], str) and data["prompt_type"].strip(), f"{path}: prompt_type must be non-empty text", failures)
     require(isinstance(data["golden_profile"], dict) and data["golden_profile"], f"{path}: golden_profile must be a non-empty object", failures)
     require(isinstance(data["golden_handoff"], dict), f"{path}: golden_handoff must be an object", failures)
     require(isinstance(data["rough_prompt"], str) and data["rough_prompt"].strip(), f"{path}: rough_prompt must be non-empty text", failures)
@@ -70,6 +72,8 @@ def validate_fixture(path: Path) -> list[str]:
         require(needle.lower() not in rewrite_text, f"{path}: rewrite contains forbidden {needle!r}", failures)
     for needle in checks.get("skill_snapshot_must_include", []):
         require(needle.lower() in skill_snapshot_text, f"{path}: skill snapshot missing {needle!r}", failures)
+    for needle in checks.get("prompt_type_must_include", []):
+        require(needle.lower() in data["prompt_type"].lower(), f"{path}: prompt_type missing {needle!r}", failures)
 
     return failures
 
@@ -92,11 +96,22 @@ def main() -> int:
         print("No fixtures found")
         return 1
 
+    names: set[str] = set()
+    prompt_types: set[str] = set()
     for path in paths:
         path_failures = validate_fixture(path)
         if path_failures:
             failures.extend(path_failures)
         else:
+            data = json.loads(path.read_text())
+            name = data["name"]
+            prompt_type = data["prompt_type"]
+            if name in names:
+                failures.append(f"{path}: duplicate fixture name {name!r}")
+            if prompt_type in prompt_types:
+                failures.append(f"{path}: duplicate prompt_type {prompt_type!r}")
+            names.add(name)
+            prompt_types.add(prompt_type)
             print(f"ok: {path}")
 
     if failures:

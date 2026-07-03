@@ -1,0 +1,71 @@
+{
+  "name": "code-change-focused-fix",
+  "prompt_type": "code-change",
+  "description": "Synthetic fixture for rewriting a small coding change request without over-expanding scope.",
+  "source_prompts": [
+    "fix this bug in the settings page, keep it small, make a pr",
+    "check current repo first and do the change"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants a scoped code change completed in the current checkout with validation and PR-ready reporting.",
+    "preferred_autonomy": "Inspect current state, implement when the target is clear, and ask only before risky or broad changes.",
+    "evidence_standard": "Use file paths, tests, and command output as evidence.",
+    "scope_preference": "Small targeted fix; avoid unrelated refactors.",
+    "communication_style": "Concise, concrete, with changed files and validation."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Small-fix intent.",
+      "Direct request to inspect and implement.",
+      "PR expectation."
+    ],
+    "add_by_default": [
+      "Verify repo root and relevant files before editing.",
+      "Run focused tests or explain why they cannot run.",
+      "Report changed files, validation, and remaining risk."
+    ],
+    "ask_before": [
+      "Broad refactors.",
+      "Destructive changes."
+    ],
+    "avoid": [
+      "Turning the fix into a redesign.",
+      "Skipping verification."
+    ]
+  },
+  "rough_prompt": "fix the settings bug and make a pr",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "github:yeet",
+      "family": "github",
+      "intent": "publish-pr",
+      "category": "github"
+    }
+  ],
+  "golden_rewrite": "Work in the current repo. Inspect the settings page implementation and recent changes before editing. Fix only the bug needed for the settings flow, avoid unrelated refactors or redesigns, and run the most focused relevant validation. If validation passes, prepare the branch for a PR using the available GitHub publishing skill, such as $github:yeet if visible. Report changed files, validation commands and results, PR status, and any remaining risk.",
+  "checks": {
+    "handoff_must_include": [
+      "Small",
+      "Verify",
+      "PR"
+    ],
+    "rewrite_must_include": [
+      "current repo",
+      "settings",
+      "Fix only",
+      "validation",
+      "PR"
+    ],
+    "rewrite_must_not_include": [
+      "redesign the settings page",
+      "rewrite the app"
+    ],
+    "skill_snapshot_must_include": [
+      "github:yeet",
+      "publish-pr"
+    ],
+    "prompt_type_must_include": [
+      "code"
+    ]
+  }
+}

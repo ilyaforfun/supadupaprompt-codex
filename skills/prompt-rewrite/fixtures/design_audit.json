@@ -1,0 +1,78 @@
+{
+  "name": "design-audit-ux-polish",
+  "prompt_type": "design-audit",
+  "description": "Synthetic fixture for design audit prompts that need visual critique without broad redesign.",
+  "source_prompts": [
+    "review this screen like a designer",
+    "fix spacing and ai slop but don't rebuild everything"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants a designer-quality audit with concrete visual issues and scoped fixes.",
+    "preferred_autonomy": "Inspect the actual UI surface and implement small polish only when requested.",
+    "evidence_standard": "Use screenshots, viewport notes, component/file references, and before/after checks.",
+    "scope_preference": "Polish the named surface; avoid a new visual system.",
+    "communication_style": "Findings first, specific visual language."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Designer-eye review.",
+      "Spacing and visual quality focus.",
+      "No broad rebuild."
+    ],
+    "add_by_default": [
+      "Inspect the real screen.",
+      "Check responsive viewports.",
+      "Name specific hierarchy, spacing, typography, and alignment issues."
+    ],
+    "ask_before": [
+      "Changing brand direction or design system."
+    ],
+    "avoid": [
+      "Marketing-page redesigns.",
+      "Generic pretty-up comments."
+    ]
+  },
+  "rough_prompt": "audit this dashboard design and fix obvious visual issues",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "design-review",
+      "family": "gstack",
+      "intent": "design-review",
+      "category": "design"
+    },
+    {
+      "invocation": "polish",
+      "family": "standalone",
+      "intent": "design-review",
+      "category": "design"
+    }
+  ],
+  "golden_rewrite": "Use the visible design audit skill, such as $design-review or $polish if available, to inspect the dashboard in the real app. Lead with concrete visual findings: hierarchy, spacing, typography, alignment, density, and AI-slop patterns, with viewport or screenshot evidence where useful. Implement only obvious scoped polish fixes if code changes are requested; do not rebuild the dashboard or change the design system. Verify the final screen at desktop and mobile widths.",
+  "checks": {
+    "handoff_must_include": [
+      "Designer",
+      "spacing",
+      "No broad"
+    ],
+    "rewrite_must_include": [
+      "design audit",
+      "dashboard",
+      "visual findings",
+      "spacing",
+      "typography",
+      "do not rebuild",
+      "Verify"
+    ],
+    "rewrite_must_not_include": [
+      "new design system",
+      "landing page"
+    ],
+    "skill_snapshot_must_include": [
+      "design-review",
+      "polish"
+    ],
+    "prompt_type_must_include": [
+      "design"
+    ]
+  }
+}
