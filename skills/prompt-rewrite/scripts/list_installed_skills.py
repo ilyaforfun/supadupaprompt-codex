@@ -280,6 +280,7 @@ def skill_intent(name: str, description: str, path: Path) -> str:
     exact_names = {skill_name, invocation_tail, slug}
 
     exact_intents = (
+        ("profile-review", ("prompt-profile-review",)),
         ("qa-report", ("qa-only", "gstack-qa-only")),
         ("qa-fix", ("qa", "gstack-qa")),
         (
@@ -335,6 +336,7 @@ def skill_intent(name: str, description: str, path: Path) -> str:
 
     text = f"{invocation} {description}".lower()
     intent_rules = (
+        ("profile-review", ("prompt profile", "profile review", "prior chats", "prompting style")),
         ("qa-report", ("qa-only", "report-only", "structured report", "never fixes", "without any code changes")),
         ("design-review", ("design-review", "designer's eye", "visual qa", "visual audit", "design audit")),
         ("debug", ("investigate", "debug", "root cause", "stack trace", "broken behavior")),
@@ -345,7 +347,7 @@ def skill_intent(name: str, description: str, path: Path) -> str:
         ("planning", ("autoplan", "office-hours", "ceo review", "eng review", "plan review")),
         ("skill-work", ("skill-creator", "skill-installer", "skillify")),
         ("docs", ("document", "docs", "slides", "spreadsheet", "pdf", "make-pdf")),
-        ("publish-pr", ("ship workflow", "create a pr", "draft pr", "publish local changes")),
+        ("publish-pr", ("ship workflow", "create pr", "create a pull request", "open a pr", "draft pr", "publish local changes")),
         ("qa-fix", ("qa test", "fix bugs", "iteratively fixes", "source code")),
         ("browser-qa", ("browse", "browser", "screenshot", "localhost", "dogfood")),
     )

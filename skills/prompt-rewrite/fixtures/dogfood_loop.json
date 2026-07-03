@@ -1,0 +1,90 @@
+{
+  "name": "dogfood-pr-iteration-loop",
+  "prompt_type": "dogfood-loop",
+  "description": "Synthetic fixture for prompts that ask supadupaprompt to dogfood itself after a PR and choose the next build.",
+  "source_prompts": [
+    "check the dogfooding again",
+    "can we loop somehow that you do the pr and then check again and find what to build next and then check again and so on"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants an iterative, PR-centered dogfood loop that learns from real usage and produces the next small improvement.",
+    "preferred_autonomy": "Run concrete checks, inspect PR state, choose a scoped next change when the evidence is clear, and publish a PR.",
+    "evidence_standard": "Use fixture pass/fail, token estimates, installed-skill scans, PR state, and changed files as evidence.",
+    "scope_preference": "One coherent improvement per loop; no unbounded autonomous loop or auto-merge.",
+    "communication_style": "Give data first, then the next-build recommendation and PR status."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Dogfood-again request.",
+      "PR-to-next-build loop intent.",
+      "Desire for repeated learning from actual use."
+    ],
+    "add_by_default": [
+      "Check previous PR state before new work.",
+      "Run dogfood fixtures, token estimates, and installed-skill scan.",
+      "Choose exactly one next small build from concrete friction.",
+      "Open a PR and stop before another lap unless asked."
+    ],
+    "ask_before": [
+      "Auto-merging PRs.",
+      "Creating a recurring automation that keeps running without review."
+    ],
+    "avoid": [
+      "Infinite autonomous loops.",
+      "Skipping validation between PRs.",
+      "Broad profile review every lap."
+    ]
+  },
+  "rough_prompt": "dogfood supaprompt after the pr and keep improving it in a loop",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "prompt-rewrite",
+      "family": "standalone",
+      "intent": "research",
+      "category": "design"
+    },
+    {
+      "invocation": "prompt-profile-review",
+      "family": "standalone",
+      "intent": "profile-review",
+      "category": "other"
+    },
+    {
+      "invocation": "github:yeet",
+      "family": "github",
+      "intent": "publish-pr",
+      "category": "github"
+    }
+  ],
+  "golden_rewrite": "Run one supadupaprompt dogfood lap in the current repo. First fetch and inspect the previous PR state, including whether it is merged, blocked, or failing checks. Then run the dogfood fixtures, rewrite token estimates by prompt type, an optional narrow profile-review estimate, and an installed-skill routing scan. If anything fails, fix that regression first. If the suite passes, choose exactly one small next change from the latest dogfood friction, add fixture coverage when relevant, implement it on a new branch, validate, commit, push, and open a PR using the available GitHub publishing skill such as $github:yeet if visible. Stop with the PR/report summary; do not auto-merge or start an infinite loop without explicit follow-up.",
+  "checks": {
+    "handoff_must_include": [
+      "PR",
+      "fixtures",
+      "one next"
+    ],
+    "rewrite_must_include": [
+      "one supadupaprompt dogfood lap",
+      "previous PR state",
+      "dogfood fixtures",
+      "token estimates",
+      "installed-skill",
+      "one small next change",
+      "new branch",
+      "open a PR"
+    ],
+    "rewrite_must_not_include": [
+      "auto-merge PRs without approval",
+      "keep looping forever",
+      "skip validation"
+    ],
+    "skill_snapshot_must_include": [
+      "prompt-rewrite",
+      "prompt-profile-review",
+      "github:yeet"
+    ],
+    "prompt_type_must_include": [
+      "loop"
+    ]
+  }
+}
