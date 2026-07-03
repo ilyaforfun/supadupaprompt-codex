@@ -34,6 +34,12 @@ cp -R skills/prompt-profile-review ~/.codex/skills/
 
 Then start a fresh Codex session so the skills are discovered.
 
+Check the local install:
+
+```bash
+python3 skills/prompt-rewrite/scripts/supaprompt_doctor.py
+```
+
 ## Usage
 
 Rewrite a rough prompt:
@@ -79,6 +85,12 @@ Validate the skills with the system skill validator:
 ```bash
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/prompt-rewrite
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/prompt-profile-review
+```
+
+Run the local health check:
+
+```bash
+python3 skills/prompt-rewrite/scripts/supaprompt_doctor.py
 ```
 
 Test the profile helper:
