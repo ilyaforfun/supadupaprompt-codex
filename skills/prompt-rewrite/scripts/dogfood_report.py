@@ -20,6 +20,7 @@ FIXTURE_DIR = SKILL_DIR / "fixtures"
 CHECKER = SCRIPT_DIR / "check_dogfood_fixtures.py"
 REWRITE_ESTIMATOR = SCRIPT_DIR / "estimate_rewrite_tokens.py"
 REVIEW_ESTIMATOR = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "estimate_review_tokens.py"
+PROFILE_PLANNER = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "plan_review_evidence.py"
 SKILL_SCANNER = SCRIPT_DIR / "list_installed_skills.py"
 
 DEFAULT_SCAN_INTENTS = "browser-qa,qa-report,design-review,publish-pr,code-review,research,automation,profile-review"
@@ -27,6 +28,7 @@ DEFAULT_SCAN_QUERY = (
     "supadupaprompt,prompt-rewrite,prompt-profile-review,dogfood,pr,review,github,browser,qa,"
     "design,research,notion,gmail,google-drive,openai-developers,automation"
 )
+DEFAULT_REVIEW_GOAL = "review how the user prompts for PR/dogfood work without scanning everything"
 
 
 def run(cmd: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -79,6 +81,22 @@ def estimate_review(path: Path) -> dict[str, Any]:
     return run_json(["python3", str(REVIEW_ESTIMATOR), "--evidence-file", str(path), "--format", "json"])
 
 
+def plan_review_evidence(path: Path, goal: str, budget: int) -> dict[str, Any]:
+    return run_json(
+        [
+            "python3",
+            str(PROFILE_PLANNER),
+            str(path),
+            "--goal",
+            goal,
+            "--budget",
+            str(budget),
+            "--format",
+            "json",
+        ]
+    )
+
+
 def pr_snapshot(pr_number: str) -> dict[str, Any] | None:
     result = run(
         [
@@ -116,15 +134,26 @@ def scan_skills(limit: int) -> list[str]:
     return [line for line in result.stdout.splitlines() if line.strip()]
 
 
-def recommendation(check_passed: bool, pr: dict[str, Any] | None, review_tokens: int | None) -> str:
+def recommendation(
+    check_passed: bool,
+    pr: dict[str, Any] | None,
+    review_tokens: int | None,
+    narrow_plan: dict[str, Any] | None,
+) -> str:
     if not check_passed:
         return "Fix fixture regressions before adding behavior."
     if pr and pr.get("error"):
         return "Resolve PR lookup/auth before trusting the loop boundary."
     if pr and pr.get("state") not in {None, "MERGED", "CLOSED"}:
         return "Finish the current PR state before starting a new feature lap."
+    if review_tokens and narrow_plan:
+        narrow_tokens = int(narrow_plan["estimated_review_total_tokens"])
+        if review_tokens > narrow_tokens:
+            return (
+                "Use the narrow profile-review prompt shown above; broaden only if the selected evidence is thin."
+            )
     if review_tokens and review_tokens > 8000:
-        return "Optimize profile-review evidence narrowing before broad profile scans."
+        return "Run the evidence planner before broad profile-review scans."
     return "Pick one small missing behavior from the latest dogfood prompt and cover it with a fixture before implementation."
 
 
@@ -141,8 +170,10 @@ def print_report(args: argparse.Namespace) -> int:
         fixture_rows.append((fixture_prompt_type(path), path.name, estimate_fixture(path)))
 
     review_data: dict[str, Any] | None = None
+    narrow_plan: dict[str, Any] | None = None
     if args.evidence_file:
         review_data = estimate_review(args.evidence_file)
+        narrow_plan = plan_review_evidence(args.evidence_file, args.evidence_goal, args.narrow_review_budget)
 
     pr = pr_snapshot(args.pr) if args.pr else None
     skill_lines = scan_skills(args.skill_scan_limit) if args.scan_skills else []
@@ -199,9 +230,16 @@ def print_report(args: argparse.Namespace) -> int:
         print()
         print("## Profile Review Estimate")
         print(f"- Evidence file: `{args.evidence_file}`")
-        print(f"- Estimated total tokens: {review_data['estimated_total_tokens']}")
+        print(f"- Broad estimated total tokens: {review_data['estimated_total_tokens']}")
         for component in review_data["components"]:
             print(f"- {component['component']}: {component['estimated_tokens']} tokens")
+        if narrow_plan:
+            print(f"- Narrow goal: {narrow_plan['goal']}")
+            print(f"- Narrow budget: {narrow_plan['budget_tokens']}")
+            print(f"- Narrow estimated total tokens: {narrow_plan['estimated_review_total_tokens']}")
+            print(f"- Narrow selected snippets: {narrow_plan['selected_snippet_count']}")
+            print(f"- Narrow selected evidence tokens: {narrow_plan['selected_evidence_tokens']}")
+            print(f"- Narrow review command: {narrow_plan['commands']['review_command']}")
 
     if skill_lines:
         print()
@@ -211,7 +249,7 @@ def print_report(args: argparse.Namespace) -> int:
 
     print()
     print("## Next Loop Recommendation")
-    print(f"- {recommendation(check_passed, pr, review_tokens)}")
+    print(f"- {recommendation(check_passed, pr, review_tokens, narrow_plan)}")
     print("- Keep each lap to one coherent PR, then rerun this report from merged main.")
     return 0 if check_passed else 1
 
@@ -220,6 +258,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pr", help="Optional GitHub PR number to include in the report")
     parser.add_argument("--evidence-file", type=Path, help="Optional profile-review evidence file to estimate")
+    parser.add_argument("--evidence-goal", default=DEFAULT_REVIEW_GOAL, help="Goal for narrow profile-review evidence planning")
+    parser.add_argument("--narrow-review-budget", type=int, default=5000, help="Target total tokens for the narrow profile-review plan")
     parser.add_argument("--scan-skills", action="store_true", help="Include an installed-skill routing scan")
     parser.add_argument("--skill-scan-limit", type=int, default=12)
     return print_report(parser.parse_args())

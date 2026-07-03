@@ -20,7 +20,7 @@ Use a narrower evidence file when possible. Broad profile review over all memori
 3. Interpret the result.
    - Fixture failure beats all new work.
    - PR/check/auth problems beat new behavior.
-   - Token spikes suggest review-scope or cache work.
+   - Token spikes suggest review-scope, evidence-planning, or cache work.
    - Missing coverage for the latest user prompt suggests a new fixture.
    - Installed-skill routing misses suggest scanner or routing-reference work.
 

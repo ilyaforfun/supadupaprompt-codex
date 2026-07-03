@@ -13,7 +13,9 @@ Use supadupaprompt-codex to turn prior conversations into a compact private prof
 
 1. Define the review scope.
    - Prefer sources the user named explicitly: current thread, exported chats, local memory files, session logs, or a supplied folder.
+   - When the source set is broad, first plan a narrow evidence set with `scripts/plan_review_evidence.py`.
    - If no source is named, inspect likely local sources only when they are available and clearly relevant, such as `~/.codex/memories/MEMORY.md`, `~/.codex/memories/rollout_summaries/`, or `~/.codex/sessions/`.
+   - Broad-scan all memories or sessions only when the user asks for full recalibration, the narrow plan is too thin, or the target pattern is still unclear.
    - Keep the review local. Do not send private chat text to external services.
 
 2. Gather evidence.
@@ -43,6 +45,12 @@ Use supadupaprompt-codex to turn prior conversations into a compact private prof
 
 ## Evidence Collection Helper
 
+Plan a narrow evidence set before scanning broad sources:
+
+```bash
+python3 scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal "review how I prompt for PR/dogfood work" --budget 5000
+```
+
 Run the helper from this skill directory or pass its absolute path:
 
 ```bash
@@ -59,13 +67,13 @@ The helper prints candidate user-prompt evidence with source paths and line numb
 
 ## Token Accounting
 
-Estimate review-mode token use before scanning broad sources:
+Estimate review-mode token use before scanning broad sources. Prefer the evidence planner when the source could exceed the useful budget:
 
 ```bash
 python3 scripts/estimate_review_tokens.py --evidence-file ~/.codex/memories/MEMORY.md
 ```
 
-Use the estimate to choose narrower sources, lower `--limit`, or summarize evidence before handing it to `$prompt-rewrite`. Treat the count as planning guidance, not billing truth.
+Use the estimate and evidence plan to choose narrower sources, lower `--limit`, or summarize evidence before handing it to `$prompt-rewrite`. Treat counts as planning guidance, not billing truth.
 
 ## Privacy Rules
 

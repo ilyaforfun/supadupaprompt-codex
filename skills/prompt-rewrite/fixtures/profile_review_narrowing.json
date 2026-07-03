@@ -1,0 +1,83 @@
+{
+  "name": "profile-review-narrowing",
+  "prompt_type": "profile-review-narrowing",
+  "description": "Synthetic fixture for profile-review prompts that need narrow evidence planning instead of broad chat scanning.",
+  "source_prompts": [
+    "review how I prompt for PR/dogfood work, but don't scan everything",
+    "keep the profile review cheap and focused"
+  ],
+  "golden_profile": {
+    "default_intent": "The user wants a targeted prompt-style review for a specific work pattern, not a full local-history recalibration.",
+    "preferred_autonomy": "Plan and rank evidence first, then review the selected snippets if they are sufficient.",
+    "evidence_standard": "Use source paths, line numbers, snippet counts, and token estimates.",
+    "scope_preference": "Narrow PR/dogfood evidence only; broaden only if the selected evidence is too thin.",
+    "communication_style": "Report the evidence plan and token savings before the profile conclusions."
+  },
+  "golden_handoff": {
+    "preserve": [
+      "Profile-review goal.",
+      "PR/dogfood focus.",
+      "Do-not-scan-everything boundary."
+    ],
+    "add_by_default": [
+      "Run the evidence planner with a total token budget.",
+      "Use selected snippets before broad sources.",
+      "Show broad versus narrow token estimates.",
+      "Ask before full recalibration."
+    ],
+    "ask_before": [
+      "Broad-scanning all memories or session logs.",
+      "Persisting a profile file."
+    ],
+    "avoid": [
+      "Loading every memory by default.",
+      "Using private raw chat excerpts in public output.",
+      "Skipping line/source evidence."
+    ]
+  },
+  "rough_prompt": "use profile review for how i prompt on pr dogfood stuff, dont scan all chats",
+  "installed_skill_snapshot": [
+    {
+      "invocation": "prompt-profile-review",
+      "family": "standalone",
+      "intent": "profile-review",
+      "category": "other"
+    },
+    {
+      "invocation": "prompt-rewrite",
+      "family": "standalone",
+      "intent": "research",
+      "category": "design"
+    }
+  ],
+  "golden_rewrite": "Use $prompt-profile-review to review how the user prompts for PR/dogfood work, but do not broad-scan all chats by default. First run `python3 skills/prompt-profile-review/scripts/plan_review_evidence.py ~/.codex/memories/MEMORY.md --goal \"review how I prompt for PR/dogfood work\" --budget 5000` or the equivalent path-specific command. Use the ranked selected snippets as the initial evidence set, report broad versus narrow token estimates, and broaden to rollout summaries or sessions only if the selected evidence is too thin. Produce the standard prompt profile plus a compact Prompt-Rewrite Handoff, with source paths and line numbers but no long raw private excerpts.",
+  "checks": {
+    "handoff_must_include": [
+      "Profile-review",
+      "token budget",
+      "full recalibration"
+    ],
+    "rewrite_must_include": [
+      "prompt-profile-review",
+      "PR/dogfood",
+      "do not broad-scan",
+      "plan_review_evidence.py",
+      "budget 5000",
+      "ranked selected snippets",
+      "broad versus narrow token estimates",
+      "Prompt-Rewrite Handoff"
+    ],
+    "rewrite_must_not_include": [
+      "review all sessions first",
+      "load every memory",
+      "publish raw chats"
+    ],
+    "skill_snapshot_must_include": [
+      "prompt-profile-review",
+      "profile-review"
+    ],
+    "prompt_type_must_include": [
+      "narrowing"
+    ]
+  }
+}
