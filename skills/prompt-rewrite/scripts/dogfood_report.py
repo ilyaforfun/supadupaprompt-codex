@@ -22,6 +22,7 @@ REWRITE_ESTIMATOR = SCRIPT_DIR / "estimate_rewrite_tokens.py"
 REVIEW_ESTIMATOR = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "estimate_review_tokens.py"
 PROFILE_PLANNER = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "plan_review_evidence.py"
 FORWARD_TEST_PLANNER = SCRIPT_DIR / "plan_forward_tests.py"
+FORWARD_TEST_SCORER = SCRIPT_DIR / "score_forward_tests.py"
 SKILL_SCANNER = SCRIPT_DIR / "list_installed_skills.py"
 
 DEFAULT_SCAN_INTENTS = "browser-qa,qa-report,design-review,publish-pr,code-review,research,automation,profile-review"
@@ -55,6 +56,12 @@ def optional_output(cmd: list[str]) -> str:
     if result.returncode != 0:
         return "unknown"
     return result.stdout.strip()
+
+
+def issue_summary(issues: list[str]) -> str:
+    if len(issues) <= 2:
+        return "; ".join(issues)
+    return f"{'; '.join(issues[:2])}; +{len(issues) - 2} more"
 
 
 def github_env() -> dict[str, str]:
@@ -102,6 +109,40 @@ def plan_forward_tests(limit: int) -> dict[str, Any]:
     return run_json(["python3", str(FORWARD_TEST_PLANNER), "--limit", str(limit), "--format", "json"])
 
 
+def score_forward_tests(results_path: Path, limit: int) -> dict[str, Any]:
+    result = run(
+        [
+            "python3",
+            str(FORWARD_TEST_SCORER),
+            "--results",
+            str(results_path),
+            "--limit",
+            str(limit),
+            "--format",
+            "json",
+        ]
+    )
+    if result.stdout.strip():
+        try:
+            data = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            pass
+        else:
+            data["command_returncode"] = result.returncode
+            return data
+    return {
+        "results_file": str(results_path),
+        "overall_status": "error",
+        "case_count": 0,
+        "complete_count": 0,
+        "passed_count": 0,
+        "failed_count": 0,
+        "incomplete_count": 0,
+        "cases": [],
+        "error": result.stderr.strip() or result.stdout.strip() or "forward-test scorer failed",
+    }
+
+
 def pr_snapshot(pr_number: str) -> dict[str, Any] | None:
     result = run(
         [
@@ -145,6 +186,7 @@ def recommendation(
     review_tokens: int | None,
     narrow_plan: dict[str, Any] | None,
     forward_plan: dict[str, Any] | None,
+    forward_score: dict[str, Any] | None,
 ) -> str:
     if not check_passed:
         return "Fix fixture regressions before adding behavior."
@@ -152,11 +194,27 @@ def recommendation(
         return "Resolve PR lookup/auth before trusting the loop boundary."
     if pr and pr.get("state") not in {None, "MERGED", "CLOSED"}:
         return "Finish the current PR state before starting a new feature lap."
+    if forward_score:
+        if forward_score.get("overall_status") == "incomplete":
+            return "Finish the forward-test results file before adding another feature."
+        if forward_score.get("overall_status") == "fail":
+            failed = [
+                case["name"]
+                for case in forward_score.get("cases", [])
+                if case.get("status") == "fail"
+            ]
+            if failed:
+                return f"Fix forward-test failures before the next feature: {', '.join(failed)}."
+            return "Fix forward-test scoring errors before the next feature."
+        if forward_score.get("overall_status") == "error":
+            return "Fix the forward-test results file or scorer invocation before adding another feature."
+        if forward_score.get("overall_status") == "pass":
+            return "Forward tests pass; pick the next user-facing improvement and keep it to one PR."
     if review_tokens and narrow_plan:
         narrow_tokens = int(narrow_plan["estimated_review_total_tokens"])
         if review_tokens > narrow_tokens:
             if forward_plan and forward_plan.get("case_count"):
-                return "Run the manual forward-test plan before adding another feature; use narrow profile review when recalibrating."
+                return "Run the manual forward-test plan, record results with score_forward_tests.py, then add the next feature."
             return "Use the narrow profile-review prompt shown above; broaden only if the selected evidence is thin."
     if review_tokens and review_tokens > 8000:
         return "Run the evidence planner before broad profile-review scans."
@@ -184,6 +242,7 @@ def print_report(args: argparse.Namespace) -> int:
     pr = pr_snapshot(args.pr) if args.pr else None
     skill_lines = scan_skills(args.skill_scan_limit) if args.scan_skills else []
     forward_plan = plan_forward_tests(args.forward_test_limit)
+    forward_score = score_forward_tests(args.forward_test_results, args.forward_test_limit) if args.forward_test_results else None
     review_tokens = int(review_data["estimated_total_tokens"]) if review_data else None
 
     print("# Dogfood Report")
@@ -259,14 +318,40 @@ def print_report(args: argparse.Namespace) -> int:
         print("## Forward Tests")
         print(f"- Planned cases: {forward_plan['case_count']}")
         print(f"- Planner command: `python3 skills/prompt-rewrite/scripts/plan_forward_tests.py --limit {args.forward_test_limit}`")
+        print(
+            "- Results template command: "
+            f"`python3 skills/prompt-rewrite/scripts/score_forward_tests.py --init-results /tmp/supaprompt-forward-results.json --limit {args.forward_test_limit}`"
+        )
         for case in forward_plan["cases"]:
             print(f"- `{case['name']}` -> `${case['target_skill']}` ({case['prompt_type']})")
+        if forward_score:
+            print()
+            print("### Forward Test Scores")
+            print(f"- Results file: `{forward_score['results_file']}`")
+            print(f"- Overall status: {forward_score['overall_status']}")
+            print(f"- Complete: {forward_score['complete_count']}/{forward_score['case_count']}")
+            print(f"- Passed: {forward_score['passed_count']}")
+            print(f"- Failed: {forward_score['failed_count']}")
+            print(f"- Incomplete: {forward_score['incomplete_count']}")
+            if forward_score.get("error"):
+                print(f"- Error: {forward_score['error']}")
+            print()
+            print("| Case | Status | Avg score | Points | Red flags | Issues |")
+            print("| --- | --- | ---: | ---: | ---: | --- |")
+            for case in forward_score["cases"]:
+                issues = issue_summary(case["issues"]) if case["issues"] else ""
+                print(
+                    f"| `{case['name']}` | {case['status']} | {case['average_score']} | "
+                    f"{case['expected_points']}/{case['expected_max_points']} | "
+                    f"{case['red_flags_present']} | {issues} |"
+                )
 
     print()
     print("## Next Loop Recommendation")
-    print(f"- {recommendation(check_passed, pr, review_tokens, narrow_plan, forward_plan)}")
+    print(f"- {recommendation(check_passed, pr, review_tokens, narrow_plan, forward_plan, forward_score)}")
     print("- Keep each lap to one coherent PR, then rerun this report from merged main.")
-    return 0 if check_passed else 1
+    forward_passed = forward_score is None or forward_score.get("overall_status") == "pass"
+    return 0 if check_passed and forward_passed else 1
 
 
 def main() -> int:
@@ -278,6 +363,7 @@ def main() -> int:
     parser.add_argument("--scan-skills", action="store_true", help="Include an installed-skill routing scan")
     parser.add_argument("--skill-scan-limit", type=int, default=12)
     parser.add_argument("--forward-test-limit", type=int, default=3, help="Number of manual forward tests to show")
+    parser.add_argument("--forward-test-results", type=Path, help="Optional completed forward-test results JSON to score")
     return print_report(parser.parse_args())
 
 

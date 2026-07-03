@@ -106,7 +106,12 @@ Plan manual forward tests after substantial behavior changes:
 python3 scripts/plan_forward_tests.py
 ```
 
-Use the generated agent prompts in clean subagents. Keep expected behavior and red flags separate from the subagent prompt.
+Use the generated agent prompts in clean subagents. Keep expected behavior and red flags separate from the subagent prompt. To record and score outputs without leaking rubrics into the agent run:
+
+```bash
+python3 scripts/score_forward_tests.py --init-results /tmp/supaprompt-forward-results.json
+python3 scripts/score_forward_tests.py --results /tmp/supaprompt-forward-results.json
+```
 
 For iterative PR-to-dogfood-to-next-build loops on supadupaprompt itself, read `references/dogfood-loop.md` and start with:
 
