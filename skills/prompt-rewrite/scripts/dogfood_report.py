@@ -21,6 +21,7 @@ CHECKER = SCRIPT_DIR / "check_dogfood_fixtures.py"
 REWRITE_ESTIMATOR = SCRIPT_DIR / "estimate_rewrite_tokens.py"
 REVIEW_ESTIMATOR = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "estimate_review_tokens.py"
 PROFILE_PLANNER = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "plan_review_evidence.py"
+FORWARD_TEST_PLANNER = SCRIPT_DIR / "plan_forward_tests.py"
 SKILL_SCANNER = SCRIPT_DIR / "list_installed_skills.py"
 
 DEFAULT_SCAN_INTENTS = "browser-qa,qa-report,design-review,publish-pr,code-review,research,automation,profile-review"
@@ -97,6 +98,10 @@ def plan_review_evidence(path: Path, goal: str, budget: int) -> dict[str, Any]:
     )
 
 
+def plan_forward_tests(limit: int) -> dict[str, Any]:
+    return run_json(["python3", str(FORWARD_TEST_PLANNER), "--limit", str(limit), "--format", "json"])
+
+
 def pr_snapshot(pr_number: str) -> dict[str, Any] | None:
     result = run(
         [
@@ -139,6 +144,7 @@ def recommendation(
     pr: dict[str, Any] | None,
     review_tokens: int | None,
     narrow_plan: dict[str, Any] | None,
+    forward_plan: dict[str, Any] | None,
 ) -> str:
     if not check_passed:
         return "Fix fixture regressions before adding behavior."
@@ -149,9 +155,9 @@ def recommendation(
     if review_tokens and narrow_plan:
         narrow_tokens = int(narrow_plan["estimated_review_total_tokens"])
         if review_tokens > narrow_tokens:
-            return (
-                "Use the narrow profile-review prompt shown above; broaden only if the selected evidence is thin."
-            )
+            if forward_plan and forward_plan.get("case_count"):
+                return "Run the manual forward-test plan before adding another feature; use narrow profile review when recalibrating."
+            return "Use the narrow profile-review prompt shown above; broaden only if the selected evidence is thin."
     if review_tokens and review_tokens > 8000:
         return "Run the evidence planner before broad profile-review scans."
     return "Pick one small missing behavior from the latest dogfood prompt and cover it with a fixture before implementation."
@@ -177,6 +183,7 @@ def print_report(args: argparse.Namespace) -> int:
 
     pr = pr_snapshot(args.pr) if args.pr else None
     skill_lines = scan_skills(args.skill_scan_limit) if args.scan_skills else []
+    forward_plan = plan_forward_tests(args.forward_test_limit)
     review_tokens = int(review_data["estimated_total_tokens"]) if review_data else None
 
     print("# Dogfood Report")
@@ -247,9 +254,17 @@ def print_report(args: argparse.Namespace) -> int:
         for line in skill_lines[: args.skill_scan_limit]:
             print(line)
 
+    if forward_plan:
+        print()
+        print("## Forward Tests")
+        print(f"- Planned cases: {forward_plan['case_count']}")
+        print(f"- Planner command: `python3 skills/prompt-rewrite/scripts/plan_forward_tests.py --limit {args.forward_test_limit}`")
+        for case in forward_plan["cases"]:
+            print(f"- `{case['name']}` -> `${case['target_skill']}` ({case['prompt_type']})")
+
     print()
     print("## Next Loop Recommendation")
-    print(f"- {recommendation(check_passed, pr, review_tokens, narrow_plan)}")
+    print(f"- {recommendation(check_passed, pr, review_tokens, narrow_plan, forward_plan)}")
     print("- Keep each lap to one coherent PR, then rerun this report from merged main.")
     return 0 if check_passed else 1
 
@@ -262,6 +277,7 @@ def main() -> int:
     parser.add_argument("--narrow-review-budget", type=int, default=5000, help="Target total tokens for the narrow profile-review plan")
     parser.add_argument("--scan-skills", action="store_true", help="Include an installed-skill routing scan")
     parser.add_argument("--skill-scan-limit", type=int, default=12)
+    parser.add_argument("--forward-test-limit", type=int, default=3, help="Number of manual forward tests to show")
     return print_report(parser.parse_args())
 
 

@@ -112,6 +112,12 @@ Validate dogfood fixtures:
 python3 skills/prompt-rewrite/scripts/check_dogfood_fixtures.py
 ```
 
+Plan manual forward tests:
+
+```bash
+python3 skills/prompt-rewrite/scripts/plan_forward_tests.py
+```
+
 Generate a dogfood loop report after a PR:
 
 ```bash
