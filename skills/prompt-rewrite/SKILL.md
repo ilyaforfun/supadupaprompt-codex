@@ -106,4 +106,5 @@ Use fixture failures as regression signals, then inspect the fixture before chan
 - `references/quality-rubric.md`: final checklist for prompt quality.
 - `references/personalization.md`: how to apply a user prompt profile.
 - `references/skill-routing.md`: how to reference installed skills natively.
+- `references/skill-routing-examples.md`: routing examples; read only when routing behavior is ambiguous, examples are requested, or fixture output fails.
 - `references/examples.md`: compact before/after examples for common rewrites.
