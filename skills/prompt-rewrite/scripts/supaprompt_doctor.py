@@ -15,49 +15,57 @@ from typing import Any
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parents[2]
-PROMPT_REWRITE_DIR = REPO_ROOT / "skills" / "prompt-rewrite"
-PROFILE_REVIEW_DIR = REPO_ROOT / "skills" / "prompt-profile-review"
+PROMPT_REWRITE_DIR = SCRIPT_DIR.parent
+SKILLS_ROOT = PROMPT_REWRITE_DIR.parent
+REPO_CANDIDATE = SKILLS_ROOT.parent
+IS_REPO_LAYOUT = (
+    (REPO_CANDIDATE / "README.md").exists()
+    and (REPO_CANDIDATE / "scripts" / "install.py").exists()
+    and (REPO_CANDIDATE / "skills" / "prompt-rewrite" / "SKILL.md").exists()
+)
+REPO_ROOT = REPO_CANDIDATE if IS_REPO_LAYOUT else SKILLS_ROOT
+PROFILE_REVIEW_DIR = SKILLS_ROOT / "prompt-profile-review"
 SYSTEM_VALIDATOR = Path("~/.codex/skills/.system/skill-creator/scripts/quick_validate.py").expanduser()
 
-REQUIRED_PROMPT_REWRITE_FILES = (
-    "skills/prompt-rewrite/SKILL.md",
-    "skills/prompt-rewrite/references/prompt-types.md",
-    "skills/prompt-rewrite/references/quality-rubric.md",
-    "skills/prompt-rewrite/references/skill-routing.md",
-    "skills/prompt-rewrite/scripts/check_dogfood_fixtures.py",
-    "skills/prompt-rewrite/scripts/dogfood_report.py",
-    "skills/prompt-rewrite/scripts/estimate_rewrite_tokens.py",
-    "skills/prompt-rewrite/scripts/list_installed_skills.py",
-    "skills/prompt-rewrite/scripts/plan_forward_tests.py",
-    "skills/prompt-rewrite/scripts/score_forward_tests.py",
-    "skills/prompt-rewrite/scripts/supaprompt_doctor.py",
-)
+REQUIRED_PROMPT_REWRITE_FILES = [
+    PROMPT_REWRITE_DIR / "SKILL.md",
+    PROMPT_REWRITE_DIR / "references" / "prompt-types.md",
+    PROMPT_REWRITE_DIR / "references" / "quality-rubric.md",
+    PROMPT_REWRITE_DIR / "references" / "skill-routing.md",
+    PROMPT_REWRITE_DIR / "scripts" / "check_dogfood_fixtures.py",
+    PROMPT_REWRITE_DIR / "scripts" / "dogfood_report.py",
+    PROMPT_REWRITE_DIR / "scripts" / "estimate_rewrite_tokens.py",
+    PROMPT_REWRITE_DIR / "scripts" / "list_installed_skills.py",
+    PROMPT_REWRITE_DIR / "scripts" / "plan_forward_tests.py",
+    PROMPT_REWRITE_DIR / "scripts" / "score_forward_tests.py",
+    PROMPT_REWRITE_DIR / "scripts" / "supaprompt_doctor.py",
+]
 
-OPTIONAL_PACK_FILES = (
-    "README.md",
-    "scripts/install.py",
-    "skills/prompt-profile-review/SKILL.md",
-    "skills/prompt-profile-review/references/profile-schema.md",
-    "skills/prompt-profile-review/references/source-guide.md",
-    "skills/prompt-profile-review/scripts/collect_user_prompts.py",
-    "skills/prompt-profile-review/scripts/estimate_review_tokens.py",
-    "skills/prompt-profile-review/scripts/plan_review_evidence.py",
-)
+OPTIONAL_PACK_FILES = [
+    PROFILE_REVIEW_DIR / "SKILL.md",
+    PROFILE_REVIEW_DIR / "references" / "profile-schema.md",
+    PROFILE_REVIEW_DIR / "references" / "source-guide.md",
+    PROFILE_REVIEW_DIR / "scripts" / "collect_user_prompts.py",
+    PROFILE_REVIEW_DIR / "scripts" / "estimate_review_tokens.py",
+    PROFILE_REVIEW_DIR / "scripts" / "plan_review_evidence.py",
+]
+if IS_REPO_LAYOUT:
+    OPTIONAL_PACK_FILES = [REPO_ROOT / "README.md", REPO_ROOT / "scripts" / "install.py", *OPTIONAL_PACK_FILES]
 
-SCRIPT_FILES = (
-    "scripts/install.py",
-    "skills/prompt-rewrite/scripts/check_dogfood_fixtures.py",
-    "skills/prompt-rewrite/scripts/dogfood_report.py",
-    "skills/prompt-rewrite/scripts/estimate_rewrite_tokens.py",
-    "skills/prompt-rewrite/scripts/list_installed_skills.py",
-    "skills/prompt-rewrite/scripts/plan_forward_tests.py",
-    "skills/prompt-rewrite/scripts/score_forward_tests.py",
-    "skills/prompt-rewrite/scripts/supaprompt_doctor.py",
-    "skills/prompt-profile-review/scripts/collect_user_prompts.py",
-    "skills/prompt-profile-review/scripts/estimate_review_tokens.py",
-    "skills/prompt-profile-review/scripts/plan_review_evidence.py",
-)
+SCRIPT_FILES = [
+    PROMPT_REWRITE_DIR / "scripts" / "check_dogfood_fixtures.py",
+    PROMPT_REWRITE_DIR / "scripts" / "dogfood_report.py",
+    PROMPT_REWRITE_DIR / "scripts" / "estimate_rewrite_tokens.py",
+    PROMPT_REWRITE_DIR / "scripts" / "list_installed_skills.py",
+    PROMPT_REWRITE_DIR / "scripts" / "plan_forward_tests.py",
+    PROMPT_REWRITE_DIR / "scripts" / "score_forward_tests.py",
+    PROMPT_REWRITE_DIR / "scripts" / "supaprompt_doctor.py",
+    PROFILE_REVIEW_DIR / "scripts" / "collect_user_prompts.py",
+    PROFILE_REVIEW_DIR / "scripts" / "estimate_review_tokens.py",
+    PROFILE_REVIEW_DIR / "scripts" / "plan_review_evidence.py",
+]
+if IS_REPO_LAYOUT:
+    SCRIPT_FILES = [REPO_ROOT / "scripts" / "install.py", *SCRIPT_FILES]
 
 
 @dataclass
@@ -70,6 +78,15 @@ class CheckResult:
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
+
+
+def display_path(path: Path) -> str:
+    for root in (REPO_ROOT, SKILLS_ROOT):
+        try:
+            return str(path.relative_to(root))
+        except ValueError:
+            continue
+    return str(path)
 
 
 def truncate(text: str, max_chars: int = 700) -> str:
@@ -93,8 +110,8 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
 
 
 def check_required_files() -> CheckResult:
-    missing_required = [relative for relative in REQUIRED_PROMPT_REWRITE_FILES if not (REPO_ROOT / relative).exists()]
-    missing_optional = [relative for relative in OPTIONAL_PACK_FILES if not (REPO_ROOT / relative).exists()]
+    missing_required = [display_path(path) for path in REQUIRED_PROMPT_REWRITE_FILES if not path.exists()]
+    missing_optional = [display_path(path) for path in OPTIONAL_PACK_FILES if not path.exists()]
     if missing_required:
         return CheckResult(
             "required-files",
@@ -133,7 +150,9 @@ def check_skill_frontmatter() -> CheckResult:
 
 
 def check_script_syntax() -> CheckResult:
-    existing = [str(REPO_ROOT / relative) for relative in SCRIPT_FILES if (REPO_ROOT / relative).exists()]
+    existing = [str(path) for path in SCRIPT_FILES if path.exists()]
+    if not existing:
+        return CheckResult("script-syntax", "fail", "No Python scripts were found to compile.", [])
     result = run([sys.executable, "-m", "py_compile", *existing])
     if result.returncode != 0:
         return CheckResult("script-syntax", "fail", "Python syntax check failed.", [truncate(result.stderr or result.stdout)])
@@ -141,7 +160,7 @@ def check_script_syntax() -> CheckResult:
 
 
 def check_fixture_suite() -> CheckResult:
-    result = run([sys.executable, "skills/prompt-rewrite/scripts/check_dogfood_fixtures.py"])
+    result = run([sys.executable, str(PROMPT_REWRITE_DIR / "scripts" / "check_dogfood_fixtures.py")])
     if result.returncode != 0:
         return CheckResult("dogfood-fixtures", "fail", "Fixture validation failed.", [truncate(result.stdout + result.stderr)])
     ok_count = sum(1 for line in result.stdout.splitlines() if line.startswith("ok: "))
@@ -152,9 +171,9 @@ def check_token_estimators(evidence_file: Path | None) -> CheckResult:
     commands = [
         [
             sys.executable,
-            "skills/prompt-rewrite/scripts/estimate_rewrite_tokens.py",
+            str(PROMPT_REWRITE_DIR / "scripts" / "estimate_rewrite_tokens.py"),
             "--fixture",
-            "skills/prompt-rewrite/fixtures/review_handoff_rewrite.json",
+            str(PROMPT_REWRITE_DIR / "fixtures" / "review_handoff_rewrite.json"),
             "--format",
             "json",
         ],
@@ -163,7 +182,7 @@ def check_token_estimators(evidence_file: Path | None) -> CheckResult:
         commands.append(
             [
                 sys.executable,
-                "skills/prompt-profile-review/scripts/estimate_review_tokens.py",
+                str(PROFILE_REVIEW_DIR / "scripts" / "estimate_review_tokens.py"),
                 "--format",
                 "json",
             ]
@@ -198,10 +217,12 @@ def check_installed_skill_scan() -> CheckResult:
     result = run(
         [
             sys.executable,
-            "skills/prompt-rewrite/scripts/list_installed_skills.py",
+            str(PROMPT_REWRITE_DIR / "scripts" / "list_installed_skills.py"),
             "--no-cache",
             "--format",
             "json",
+            "--roots",
+            str(SKILLS_ROOT),
             "--query",
             "prompt-rewrite,prompt-profile-review",
             "--limit",
@@ -234,7 +255,7 @@ def check_plugin_cache(limit: int) -> CheckResult:
     result = run(
         [
             sys.executable,
-            "skills/prompt-rewrite/scripts/list_installed_skills.py",
+            str(PROMPT_REWRITE_DIR / "scripts" / "list_installed_skills.py"),
             "--include-plugin-cache",
             "--no-cache",
             "--format",
@@ -267,7 +288,7 @@ def check_forward_test_tools() -> CheckResult:
         init_result = run(
             [
                 sys.executable,
-                "skills/prompt-rewrite/scripts/score_forward_tests.py",
+                str(PROMPT_REWRITE_DIR / "scripts" / "score_forward_tests.py"),
                 "--init-results",
                 str(result_path),
                 "--limit",
@@ -279,7 +300,7 @@ def check_forward_test_tools() -> CheckResult:
         score_result = run(
             [
                 sys.executable,
-                "skills/prompt-rewrite/scripts/score_forward_tests.py",
+                str(PROMPT_REWRITE_DIR / "scripts" / "score_forward_tests.py"),
                 "--results",
                 str(result_path),
                 "--limit",
