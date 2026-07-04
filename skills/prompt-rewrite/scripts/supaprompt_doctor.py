@@ -36,6 +36,7 @@ REQUIRED_PROMPT_REWRITE_FILES = (
 
 OPTIONAL_PACK_FILES = (
     "README.md",
+    "scripts/install.py",
     "skills/prompt-profile-review/SKILL.md",
     "skills/prompt-profile-review/references/profile-schema.md",
     "skills/prompt-profile-review/references/source-guide.md",
@@ -45,6 +46,7 @@ OPTIONAL_PACK_FILES = (
 )
 
 SCRIPT_FILES = (
+    "scripts/install.py",
     "skills/prompt-rewrite/scripts/check_dogfood_fixtures.py",
     "skills/prompt-rewrite/scripts/dogfood_report.py",
     "skills/prompt-rewrite/scripts/estimate_rewrite_tokens.py",

@@ -25,19 +25,60 @@ supadupaprompt-codex focuses on a different wedge: Codex-native prompt rewriting
 
 ## Install
 
-Copy either or both skill folders into your Codex skills directory:
+Install both skills into your local Codex skills directory:
+
+```bash
+python3 scripts/install.py
+```
+
+Preview the install first, choose a custom skills directory, or refresh an existing install:
+
+```bash
+python3 scripts/install.py --dry-run
+python3 scripts/install.py --skills-dir ~/.codex/skills
+python3 scripts/install.py --force
+```
+
+Then start a fresh Codex session so the skills are discovered.
+
+Manual install still works:
 
 ```bash
 cp -R skills/prompt-rewrite ~/.codex/skills/
 cp -R skills/prompt-profile-review ~/.codex/skills/
 ```
 
-Then start a fresh Codex session so the skills are discovered.
-
 Check the local install:
 
 ```bash
 python3 skills/prompt-rewrite/scripts/supaprompt_doctor.py
+```
+
+## Quick Demo
+
+Rough ask:
+
+```text
+qa the onboarding flow in browser on mobile and desktop, give bugs with proof, don't fix yet
+```
+
+Rewritten shape:
+
+```text
+You are Codex. QA the onboarding flow in a real browser and produce a report only. Do not make code changes or attempt fixes.
+
+Target:
+- App URL: <APP_URL>
+- If no URL is available, ask for it before testing instead of inventing one.
+
+Coverage:
+- Desktop viewport, around 1440x900.
+- Mobile viewport, around 390x844.
+- First-run onboarding path, returning-user path if reachable, form validation, navigation/back behavior, loading states, error states, and completion/success state.
+
+For every bug or concern, include severity, reproduction steps, expected vs actual behavior, screenshot or visual proof when possible, console/network evidence when present, and the viewport where it happened.
+
+Output a readiness summary first, then findings ordered by severity, then untested areas. Stop after the QA report.
 ```
 
 ## Usage
