@@ -12,11 +12,11 @@ from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
-REPO_ROOT = SCRIPT_DIR.parents[2]
+SKILLS_ROOT = SKILL_DIR.parent
 FORWARD_TEST_DIR = SKILL_DIR / "forward_tests"
 TARGET_SKILLS = {
-    "prompt-rewrite": REPO_ROOT / "skills" / "prompt-rewrite",
-    "prompt-profile-review": REPO_ROOT / "skills" / "prompt-profile-review",
+    "prompt-rewrite": SKILLS_ROOT / "prompt-rewrite",
+    "prompt-profile-review": SKILLS_ROOT / "prompt-profile-review",
 }
 REQUIRED_KEYS = {
     "name",

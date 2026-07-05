@@ -15,12 +15,20 @@ from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
-REPO_ROOT = SCRIPT_DIR.parents[2]
+SKILLS_ROOT = SKILL_DIR.parent
+REPO_CANDIDATE = SKILLS_ROOT.parent
+IS_REPO_LAYOUT = (
+    (REPO_CANDIDATE / "README.md").exists()
+    and (REPO_CANDIDATE / "scripts" / "install.py").exists()
+    and (REPO_CANDIDATE / "skills" / "prompt-rewrite" / "SKILL.md").exists()
+)
+REPO_ROOT = REPO_CANDIDATE if IS_REPO_LAYOUT else SKILLS_ROOT
 FIXTURE_DIR = SKILL_DIR / "fixtures"
 CHECKER = SCRIPT_DIR / "check_dogfood_fixtures.py"
 REWRITE_ESTIMATOR = SCRIPT_DIR / "estimate_rewrite_tokens.py"
-REVIEW_ESTIMATOR = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "estimate_review_tokens.py"
-PROFILE_PLANNER = REPO_ROOT / "skills" / "prompt-profile-review" / "scripts" / "plan_review_evidence.py"
+PROFILE_REVIEW_DIR = SKILLS_ROOT / "prompt-profile-review"
+REVIEW_ESTIMATOR = PROFILE_REVIEW_DIR / "scripts" / "estimate_review_tokens.py"
+PROFILE_PLANNER = PROFILE_REVIEW_DIR / "scripts" / "plan_review_evidence.py"
 FORWARD_TEST_PLANNER = SCRIPT_DIR / "plan_forward_tests.py"
 FORWARD_TEST_SCORER = SCRIPT_DIR / "score_forward_tests.py"
 SKILL_SCANNER = SCRIPT_DIR / "list_installed_skills.py"
@@ -56,6 +64,20 @@ def optional_output(cmd: list[str]) -> str:
     if result.returncode != 0:
         return "unknown"
     return result.stdout.strip()
+
+
+def git_status() -> str | None:
+    result = run(["git", "status", "--short"])
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def command_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 def issue_summary(issues: list[str]) -> str:
@@ -165,6 +187,13 @@ def scan_skills(limit: int) -> list[str]:
         [
             "python3",
             str(SKILL_SCANNER),
+            "--roots",
+            str(SKILLS_ROOT),
+            "~/.codex/skills",
+            "~/.agents/skills",
+            ".codex/skills",
+            ".agents/skills",
+            "skills",
             "--include-plugin-cache",
             "--no-cache",
             "--intent",
@@ -223,7 +252,7 @@ def recommendation(
 
 def print_report(args: argparse.Namespace) -> int:
     branch = one_line(["git", "branch", "--show-current"])
-    status = optional_output(["git", "status", "--short"])
+    status = git_status()
     latest_commit = one_line(["git", "log", "-1", "--oneline"])
 
     checker_result = run(["python3", str(CHECKER)])
@@ -251,7 +280,7 @@ def print_report(args: argparse.Namespace) -> int:
     print(f"- Repo: `{REPO_ROOT}`")
     print(f"- Branch: `{branch}`")
     print(f"- Latest commit: `{latest_commit}`")
-    print(f"- Git status: {'clean' if not status else 'dirty'}")
+    print(f"- Git status: {'unknown' if status is None else 'clean' if not status else 'dirty'}")
     if status:
         print()
         print("```text")
@@ -317,10 +346,10 @@ def print_report(args: argparse.Namespace) -> int:
         print()
         print("## Forward Tests")
         print(f"- Planned cases: {forward_plan['case_count']}")
-        print(f"- Planner command: `python3 skills/prompt-rewrite/scripts/plan_forward_tests.py --limit {args.forward_test_limit}`")
+        print(f"- Planner command: `python3 {command_path(FORWARD_TEST_PLANNER)} --limit {args.forward_test_limit}`")
         print(
             "- Results template command: "
-            f"`python3 skills/prompt-rewrite/scripts/score_forward_tests.py --init-results /tmp/supaprompt-forward-results.json --limit {args.forward_test_limit}`"
+            f"`python3 {command_path(FORWARD_TEST_SCORER)} --init-results /tmp/supaprompt-forward-results.json --limit {args.forward_test_limit}`"
         )
         for case in forward_plan["cases"]:
             print(f"- `{case['name']}` -> `${case['target_skill']}` ({case['prompt_type']})")
