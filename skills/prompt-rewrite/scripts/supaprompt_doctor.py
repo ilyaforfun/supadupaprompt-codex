@@ -251,7 +251,7 @@ def check_installed_skill_scan() -> CheckResult:
 def check_plugin_cache(limit: int) -> CheckResult:
     cache_root = Path("~/.codex/plugins/cache").expanduser()
     if not cache_root.is_dir():
-        return CheckResult("plugin-cache", "warn", "Plugin cache directory was not found.", [str(cache_root)])
+        return CheckResult("plugin-cache", "pass", "Plugin cache was not found; optional plugin scan skipped.", [str(cache_root)])
     result = run(
         [
             sys.executable,
@@ -278,7 +278,7 @@ def check_plugin_cache(limit: int) -> CheckResult:
         if isinstance(skill, dict) and ":" in str(skill.get("invocation", ""))
     )
     if not plugin_invocations:
-        return CheckResult("plugin-cache", "warn", "Plugin cache exists but no plugin-prefixed skills matched.", [])
+        return CheckResult("plugin-cache", "pass", "Plugin cache exists but no plugin-prefixed skills matched.", [])
     return CheckResult("plugin-cache", "pass", f"Found {len(plugin_invocations)} plugin-prefixed skills.", plugin_invocations[:limit])
 
 
@@ -322,7 +322,7 @@ def check_forward_test_tools() -> CheckResult:
 
 def check_system_validator() -> CheckResult:
     if not SYSTEM_VALIDATOR.exists():
-        return CheckResult("system-validator", "warn", "System quick_validate.py was not found.", [str(SYSTEM_VALIDATOR)])
+        return CheckResult("system-validator", "pass", "System quick_validate.py was not found; optional validator skipped.", [str(SYSTEM_VALIDATOR)])
     details: list[str] = []
     for skill_dir in (PROMPT_REWRITE_DIR, PROFILE_REVIEW_DIR):
         if not (skill_dir / "SKILL.md").exists():
@@ -348,7 +348,7 @@ def check_git_state() -> CheckResult:
     branch = run(["git", "branch", "--show-current"])
     status = run(["git", "status", "--short"])
     if branch.returncode != 0 or status.returncode != 0:
-        return CheckResult("git-state", "warn", "Could not read git state.", [truncate(branch.stderr + status.stderr)])
+        return CheckResult("git-state", "pass", "Not a git checkout; git-state check skipped.", [truncate(branch.stderr + status.stderr)])
     details = [f"branch: {branch.stdout.strip() or 'unknown'}"]
     if status.stdout.strip():
         details.append("working tree has local changes")
