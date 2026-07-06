@@ -9,6 +9,20 @@ supadupaprompt-codex is intentionally lightweight. It does not try to become a f
 
 `prompt-rewrite` can reference other installed skills natively. It checks the current Codex skill context first, and can optionally scan local skill folders, so rewritten prompts can say things like `Use $gstack for browser QA` or `Use $github:yeet for publishing` only when those skills are available.
 
+## Who This Is For
+
+supadupaprompt-codex is for people who know what they want Codex to do, but write prompts like:
+
+- "check this app"
+- "fix the bug"
+- "review the PR"
+- "make this better"
+- "dogfood and tell me what's next"
+
+It helps turn those rough asks into prompts with scope, evidence, tests, stop conditions, and the right installed skills when available.
+
+It is probably not for power users who already write very precise prompts, or for teams looking for a full prompt evaluation platform.
+
 ## Why This Exists
 
 There are already strong prompt-improvement projects:
