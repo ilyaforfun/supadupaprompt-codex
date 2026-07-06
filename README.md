@@ -39,7 +39,19 @@ supadupaprompt-codex focuses on a different wedge: Codex-native prompt rewriting
 
 ## Install
 
-Install both skills into your local Codex skills directory:
+Recommended: open Codex and ask it to install both skills from this repo:
+
+```text
+Install both Codex skills from https://github.com/ilyaforfun/supadupaprompt-codex
+
+Use these paths:
+- skills/prompt-rewrite
+- skills/prompt-profile-review
+```
+
+Then restart Codex so the skills are discovered.
+
+If you prefer terminal install, run:
 
 ```bash
 python3 scripts/install.py
@@ -52,8 +64,6 @@ python3 scripts/install.py --dry-run
 python3 scripts/install.py --skills-dir ~/.codex/skills
 python3 scripts/install.py --force
 ```
-
-Then start a fresh Codex session so the skills are discovered.
 
 Manual install still works:
 
